@@ -1,0 +1,43 @@
+{
+  "name": "stacker",
+  "version": "0.1.0",
+  "description": "Stacker DevOps toolbelt.",
+  "main": "index",
+  "engines": {
+    "node": "0.11.14"
+  },
+  "preferGlobal": true,
+  "bin": {
+    "stacker": "bin/cli"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/airstack/cli.git"
+  },
+  "keywords": [
+    "airstack"
+  ],
+  "author": "Joe Johnston <joe@simple10.com> (http://simple10.com/)",
+  "license": "Apache 2.0",
+  "bugs": {
+    "url": "https://github.com/airstack/cli/issues"
+  },
+  "homepage": "https://github.com/airstack/cli",
+  "dependencies": {
+    "bluebird": "^2.3.10",
+    "cli-table": "^0.3.1",
+    "co": "^3.1.0",
+    "coffee-script": "jashkenas/coffee-script",
+    "eco": "^1.1.0-rc-3",
+    "eventemitter3": "^0.1.5",
+    "glob": "^4.0.6",
+    "gulp": "^3.8.10",
+    "js-yaml": "^3.2.2",
+    "lodash": "^2.4.1",
+    "stacker-utils": "^0.1.2",
+    "winston": "^0.8.3"
+  }
+}
