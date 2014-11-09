@@ -40,3 +40,8 @@ stacker link my-new-plugin
   - or support comment syntax setting in .stack header
 
 - create official DSL support with [jison](http://zaach.github.io/jison/docs/)
+
+
+# Credits
+
+Stacker logo (Squares) designed by [Nicholas Menghini](http://www.thenounproject.com/nl_menghini) from the [Noun Project](http://www.thenounproject.com).
