@@ -35,15 +35,26 @@ run = ->
       .catch (err) ->
         log.error "Invalid task file: #{path.relative process.cwd(), file}"
         log.error "-->  #{err.message}"
+        log.error err.stack
+    # TODO: confirm that async is not going to screw up namespacing in DSL
+    #   Probably need to grep for namespace and inject it into tasks
     Promise.all files
     .then ->
-      gulp.start args[0]  if args[0]
+      throw 'NOARGS'  unless args[0]
+      gulp.start args[0]
+    .catch (err) ->
+      log.error err.message or err  unless err == 'NOARGS'
+      help()
 
 
 parse = (contents) ->
   # Add `yield` in front of sh calls nested in a task
   contents = contents.replace /^(\s{2,})(sh\s)/mg, '$1yield $2'
   contents
+
+help = ->
+  console.log stacker.help
+
 
 module.exports =
   run: run

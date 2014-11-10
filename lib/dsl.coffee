@@ -6,6 +6,7 @@
 gulp = require 'gulp'
 _ = require 'lodash'
 Promise = require 'bluebird'
+path = require 'path'
 co = require 'co'
 log = require 'log'
 ps = require 'stacker-utils/utils/ps'
@@ -13,15 +14,25 @@ ps = require 'stacker-utils/utils/ps'
 
 # Set the namespace for proceeding tasks
 namespace = (name) ->
-  # plugin = path.basename(opts.module or require.main.filename).toLowerCase()
-  # TODO: need to confirm if @ refers to module or global context
-  @__NAMESPACE = name  if name?
-  @__NAMESPACE
+  stacker.NAMESPACE = name  if name?
+  stacker.NAMESPACE
 
-# Add a task
-task = (name, deps, opts, action) ->
+
+help = (name, deps, opts) ->
+  setHelp.apply @, getArgs.apply @, arguments
+
+getHelp = (task_name) ->
+  stacker.help[task_name]
+
+setHelp = (task_name, deps, opts) ->
+  stacker.help[task_name] =
+    deps: deps
+    opts: opts
+    file: path.resolve __dirname, require.main.filename
+
+
+getArgs = (name, deps, opts, action) ->
   ns = namespace()
-  # help.add ns, name, deps, opts
   args = Array.prototype.slice.call arguments, 0
   deps = findParam args, 'Array'
   opts = findParam args, 'Object'
@@ -34,7 +45,13 @@ task = (name, deps, opts, action) ->
     ns
   else
     throw 'Invalid task name: namespace and task name cannot both be empty'
-  console.log ">>> #{task_name}"
+  [task_name, deps, opts, action]
+
+
+# Add a task
+task = (name, deps, opts, action) ->
+  [task_name, deps, opts, action] = getArgs.apply @, arguments
+  setHelp task_name, deps, opts  unless getHelp task_name
   action_wrapper = (cb) ->
     ret = action cb
     if _.isObject(ret) or _.isArray(ret)
@@ -54,9 +71,11 @@ task = (name, deps, opts, action) ->
       log.error err.message
       log.error err.stack
 
+
 # Run a shell command
 sh = (cmd, opts) ->
   ps.spawn 'sh', ['-c', cmd], opts
+
 
 findParam = (params, type) ->
   for p, i in params
@@ -66,10 +85,14 @@ findParam = (params, type) ->
 
 # Stacker DSL
 module.exports =
+  stacker:
+    NAMESPACE: ''
+    help: {}
   log: log
   namespace: namespace
   task: task
   sh: sh
+  help: help
   gulp: gulp
   src: gulp.src
   dest: gulp.dest
