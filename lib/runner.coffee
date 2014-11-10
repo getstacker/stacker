@@ -14,51 +14,13 @@ _ = require 'lodash'
 process.env.NODE_PATH = path.resolve(__dirname, './global') + path.delimiter + process.env.NODE_PATH
 require('module').Module._initPaths()  # Hack
 
-#
-# Stacker DSL
-#
-_.extend global,
-  # Set the namespace for proceeding tasks
-  namespace: (name) ->
-    # plugin = path.basename(opts.module or require.main.filename).toLowerCase()
-    # TODO: need to confirm if @ refers to module or global context
-    @__NAMESPACE = name  if name?
-    @__NAMESPACE
-
-  # Add a task
-  task: (name, deps, opts, action) ->
-    ns = namespace()
-    # help.add ns, name, deps, opts
-    args = Array.prototype.slice.call arguments, 0
-    deps = findParam args, 'Array'
-    opts = findParam args, 'Object'
-    action = findParam args, 'Function'
-    ns = if ns then "#{ns}:" else ''
-    console.log ">>> #{ns}#{name}"
-    gulp.task "#{ns}#{name}", deps, (cb) ->
-      new Promise (resolve, reject) ->
-        co( ->
-          try
-            ret = yield action cb
-            resolve ret
-          catch err
-            reject err
-        )()
-      .catch (err) ->
-        log.error err
-
-  # Run a shell command
-  sh: (cmd, opts) ->
-    ps.spawn 'sh', ['-c', cmd], opts
-
-
-findParam = (params, type) ->
-  for p, i in params
-    return p  if _["is#{type}"] p
-  new global[type]
+log = require 'log'  # global/log
+dsl = require './dsl'
 
 
 run = ->
+  # Make DSL available to command files processed by CoffeeScript
+  _.extend global, dsl
   args = process.argv.slice 2
   opts =
     cwd: __dirname
