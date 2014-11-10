@@ -1,12 +1,11 @@
 
+path = require 'path'
 gulp = require 'gulp'
 fs = require 'fs'
-path = require 'path'
 glob = require 'glob'
 CoffeeScript = require 'coffee-script/lib/coffee-script/coffee-script'
 Promise = require 'bluebird'
-co = require 'co'
-stream = require 'stream'
+readFile = Promise.promisify fs.readFile
 _ = require 'lodash'
 
 
@@ -26,17 +25,19 @@ run = ->
     cwd: __dirname
     sync: true
   glob '../**/**/commands/*', opts, (err, files) ->
-    for file in files
+    files = for file in files
       file = path.resolve __dirname, file
-      try
-        contents = fs.readFileSync file
+      readFile file, 'utf8'
+      .then (contents) ->
         contents = parse contents.toString()
         CoffeeScript.run contents,
           filename: file
-      catch err
+      .catch (err) ->
         log.error "Invalid task file: #{path.relative process.cwd(), file}"
         log.error "-->  #{err.message}"
-  gulp.start args[0]  if args[0]
+    Promise.all files
+    .then ->
+      gulp.start args[0]  if args[0]
 
 
 parse = (contents) ->
