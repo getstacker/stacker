@@ -37,7 +37,6 @@
     "gulp": "^3.8.10",
     "js-yaml": "^3.2.2",
     "lodash": "^2.4.1",
-    "stacker-utils": "^0.1.2",
-    "winston": "^0.8.3"
+    "stacker-utils": "^0.1.2"
   }
 }

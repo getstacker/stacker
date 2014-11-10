@@ -9,9 +9,10 @@ co = require 'co'
 stream = require 'stream'
 _ = require 'lodash'
 
-log = new (require './Logger')
-ps = require('stacker-utils').ps log: log
 
+# Make files in global dir available to all plugins via `require('module')`
+process.env.NODE_PATH = path.resolve(__dirname, './global') + path.delimiter + process.env.NODE_PATH
+require('module').Module._initPaths()  # Hack
 
 #
 # Stacker DSL
