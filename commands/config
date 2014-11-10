@@ -1,0 +1,39 @@
+namespace 'config'
+
+# Default
+task '', ['config:parse'], desc: 'Process config files', ->
+  # gulp.src conf.gzipFiles
+  # .pipe gulp.dest conf.dist
+  # src '*.stack'
+  # .pipe dest '/config'
+  log.info 'start of config >>>'
+  sh 'echo "  hi from sh"'
+  log.info 'hi from config'
+  # src from pipe
+  # write each file
+
+task 'show', ['config:parse'], desc: 'Output processed config files to stdout', ->
+  # src from pipe
+  # output to stdout
+
+task 'parse', desc: 'Parse config file templates', ->
+  log.info 'hi from config:parse'
+  # src: *.stack
+  # filter on files that have #!stacker
+  # parse header as yaml and add to config
+  # if not yet set, add config.output as file without the .stack
+  # parse file as eco template
+
+
+
+# config/php.ini.stack
+
+# #!stacker """
+# output: etc/php.ini
+# conf:
+#   php:
+#     mamx_mem: 1000
+# type: ini
+# """
+# max_mem = <%- conf.php.max_mem %>
+
