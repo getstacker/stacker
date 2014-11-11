@@ -78,24 +78,54 @@ task = (name, deps, opts, action) ->
 
 
 # Run a shell command
-sh = (cmd, opts) ->
+sh = (cmd, opts = {}) ->
   ps.spawn 'sh', ['-c', cmd], opts
 
+# Run a shell command as sudo
+sudo = (cmd, opts = {}) ->
+  # TODO: use sudo npm module
+  ps.spawn 'sudo', ['sh', '-ci', cmd], opts
 
-helpDSL = (name, deps, opts) ->
-  help.setHelp.apply null, getArgs.apply null, arguments
+
+parse = (contents) ->
+  contents = contents.toString()
+  # Add `yield` in front of sh and sudo calls
+  yieldfor = YIELDFOR.join '|'
+  re = new RegExp "^([^#]*?\\s+)(#{yieldfor})\\s(.+?)$", 'mg'
+  contents = contents.replace re, '$1yield $2 $3'
+  inject contents
 
 
+inject = (contents) ->
+  vars = for k,v of DSL
+    "#{k} = __stacker__.#{k}"
+  [
+    "__stacker__ = require('#{__filename}').dsl"
+    vars.join "\n"
+    "\n"
+    contents
+  ]
+  .join "\n"
+
+
+# Add yield in front of these methods
+YIELDFOR = ['sh', 'sudo']
 
 # Stacker DSL
-module.exports =
+DSL =
   log: log
   namespace: namespace
   task: task
   sh: sh
-  help: helpDSL
+  sudo: sudo
   gulp: gulp
   src: gulp.src
   dest: gulp.dest
   watch: gulp.watch
+  help: (name, deps, opts) ->
+    help.setHelp.apply null, getArgs.apply null, arguments
 
+
+module.exports =
+  parse: parse
+  dsl: DSL

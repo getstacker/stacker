@@ -28,7 +28,9 @@ run = ->
       file = path.resolve __dirname, file
       readFile file, 'utf8'
       .then (contents) ->
-        CoffeeScript.run parse contents,
+        contents = dsl.parse contents
+        log.debug contents
+        CoffeeScript.run contents,
           filename: file
       .catch (err) ->
         log.error "Invalid task file: #{path.relative process.cwd(), file}"
@@ -43,23 +45,7 @@ run = ->
       printHelp()
 
 
-parse = (contents) ->
-  contents = contents.toString()
-  # Add `yield` in front of sh calls nested in a task
-  contents = contents.replace /^(\s{2,})(sh\s)/mg, '$1yield $2'
-  injectDSL contents
 
-
-injectDSL = (contents) ->
-  vars = for k,v of dsl
-    "#{k} = __dsl__.#{k}"
-  dsl_path = path.resolve __dirname, 'dsl'
-  """
-    __dsl__ = require '#{dsl_path}'
-    #{vars.join "\n"}
-
-    #{contents}
-  """
 
 
 printHelp = ->
