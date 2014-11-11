@@ -7,7 +7,7 @@ task 'somecmd', desc: 'testing utils module commands', ->
   1234
 
 
-task 'cmd2', desc: 'testing utils module commands', ->
+task 'cmd2', ->
   throw 'error inside cmd2 task'
   'cmd2 return'
 
