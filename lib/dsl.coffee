@@ -11,32 +11,37 @@ co = require 'co'
 log = require 'log'
 ps = require 'stacker-utils/utils/ps'
 
+help = require 'help'
+
+NAMESPACE = ''
+
 
 # Set the namespace for proceeding tasks
 namespace = (name) ->
-  stacker.NAMESPACE = name  if name?
-  stacker.NAMESPACE
+  NAMESPACE = name  if name?
+  NAMESPACE
 
-
-help = (name, deps, opts) ->
-  setHelp.apply @, getArgs.apply @, arguments
-
-getHelp = (task_name) ->
-  stacker.help[task_name]
-
-setHelp = (task_name, deps, opts) ->
-  stacker.help[task_name] =
-    deps: deps
-    opts: opts
-    file: path.resolve __dirname, require.main.filename
-
-
+# getArgs
+#
+# Examples:
+#   getArgs 'name', ['dep1', 'dep2'], desc: "help", ->
+#   getArgs 'name', desc: "help", ->
+#   getArgs 'name', ['dep1', 'dep2'], ->
+#   getArgs 'name', ->
 getArgs = (name, deps, opts, action) ->
   ns = namespace()
   args = Array.prototype.slice.call arguments, 0
-  deps = findParam args, 'Array'
-  opts = findParam args, 'Object'
-  action = findParam args, 'Function'
+  unless _.isArray deps
+    deps = []
+    deps = args[2]  if _.isArray args[2]
+  unless typeof opts == 'object'
+    opts = {}
+    opts = args[1]  if _.isObject(args[1]) and not _.isArray(args[1]) and not _.isFunction(args[1])
+  unless _.isFunction action
+    if _.isFunction args[2]
+      action = args[2]
+    else if _.isFunction args[1]
+      action = args[1]
   task_name = if ns and name
     "#{ns}:#{name}"
   else if name
@@ -50,8 +55,8 @@ getArgs = (name, deps, opts, action) ->
 
 # Add a task
 task = (name, deps, opts, action) ->
-  [task_name, deps, opts, action] = getArgs.apply @, arguments
-  setHelp task_name, deps, opts  unless getHelp task_name
+  [task_name, deps, opts, action] = getArgs.apply null, arguments
+  help.setHelp task_name, deps, opts  unless help.getHelp task_name
   action_wrapper = (cb) ->
     ret = action cb
     if _.isObject(ret) or _.isArray(ret)
@@ -77,23 +82,20 @@ sh = (cmd, opts) ->
   ps.spawn 'sh', ['-c', cmd], opts
 
 
-findParam = (params, type) ->
-  for p, i in params
-    return p  if _["is#{type}"] p
-  new global[type]
+helpDSL = (name, deps, opts) ->
+  help.setHelp.apply null, getArgs.apply null, arguments
+
 
 
 # Stacker DSL
 module.exports =
-  stacker:
-    NAMESPACE: ''
-    help: {}
   log: log
   namespace: namespace
   task: task
   sh: sh
-  help: help
+  help: helpDSL
   gulp: gulp
   src: gulp.src
   dest: gulp.dest
   watch: gulp.watch
+

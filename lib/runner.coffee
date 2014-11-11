@@ -7,19 +7,18 @@ CoffeeScript = require 'coffee-script/lib/coffee-script/coffee-script'
 Promise = require 'bluebird'
 readFile = Promise.promisify fs.readFile
 _ = require 'lodash'
-
+Table = require 'cli-table'
 
 # Make files in global dir available to all plugins via `require('module')`
 process.env.NODE_PATH = path.resolve(__dirname, './global') + path.delimiter + process.env.NODE_PATH
 require('module').Module._initPaths()  # Hack
 
-log = require 'log'  # global/log
+log = require 'log'    # global/log
+help = require 'help'  # global/help
 dsl = require './dsl'
 
 
 run = ->
-  # Make DSL available to command files processed by CoffeeScript
-  _.extend global, dsl
   args = process.argv.slice 2
   opts =
     cwd: __dirname
@@ -29,8 +28,7 @@ run = ->
       file = path.resolve __dirname, file
       readFile file, 'utf8'
       .then (contents) ->
-        contents = parse contents.toString()
-        CoffeeScript.run contents,
+        CoffeeScript.run parse contents,
           filename: file
       .catch (err) ->
         log.error "Invalid task file: #{path.relative process.cwd(), file}"
@@ -44,17 +42,36 @@ run = ->
       gulp.start args[0]
     .catch (err) ->
       log.error err.message or err  unless err == 'NOARGS'
-      help()
+      printHelp()
 
 
 parse = (contents) ->
+  contents = contents.toString()
   # Add `yield` in front of sh calls nested in a task
   contents = contents.replace /^(\s{2,})(sh\s)/mg, '$1yield $2'
-  contents
+  injectDSL contents
 
-help = ->
-  console.log stacker.help
 
+injectDSL = (contents) ->
+  vars = for k,v of dsl
+    "#{k} = __dsl__.#{k}"
+  dsl_path = path.resolve __dirname, 'dsl'
+  """
+    __dsl__ = require '#{dsl_path}'
+    #{vars.join "\n"}
+
+    #{contents}
+  """
+
+
+printHelp = ->
+  table = new Table
+    head: ['Command', 'Description']
+    style:
+      compact: true
+  for name, h of help.getHelp()
+    table.push [name, h.opts.desc or '']
+  console.log table.toString()
 
 module.exports =
   run: run
