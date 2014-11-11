@@ -34,8 +34,6 @@ run = ->
         log.error "Invalid task file: #{path.relative process.cwd(), file}"
         log.error "-->  #{err.message}"
         log.error err.stack
-    # TODO: confirm that async is not going to screw up namespacing in DSL
-    #   Probably need to grep for namespace and inject it into tasks
     Promise.all files
     .then ->
       throw 'NOARGS'  unless args[0]
@@ -72,6 +70,7 @@ printHelp = ->
   for name, h of help.getHelp()
     table.push [name, h.opts.desc or '']
   console.log table.toString()
+
 
 module.exports =
   run: run
