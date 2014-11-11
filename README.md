@@ -26,6 +26,12 @@ stacker link my-new-plugin
 ```
 
 
+# API
+
+- https://github.com/gulpjs/gulp/blob/master/docs/API.md
+- https://github.com/gulpjs/gulp/tree/master/docs/recipes
+
+
 
 # TODO
 
