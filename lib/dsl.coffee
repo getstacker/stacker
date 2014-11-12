@@ -13,13 +13,7 @@ ps = require 'stacker-utils/utils/ps'
 
 help = require 'help'
 
-NAMESPACE = ''
 
-
-# Set the namespace for proceeding tasks
-namespace = (name) ->
-  NAMESPACE = name  if name?
-  NAMESPACE
 
 # getArgs
 #
@@ -28,34 +22,34 @@ namespace = (name) ->
 #   getArgs 'name', desc: "help", ->
 #   getArgs 'name', ['dep1', 'dep2'], ->
 #   getArgs 'name', ->
-getArgs = (name, deps, opts, action) ->
-  ns = namespace()
+_getArgs = (namespace, name, deps, opts, action) ->
+
   args = Array.prototype.slice.call arguments, 0
   unless _.isArray deps
     deps = []
-    deps = args[2]  if _.isArray args[2]
+    deps = args[3]  if _.isArray args[3]
   unless typeof opts == 'object'
     opts = {}
-    opts = args[1]  if _.isObject(args[1]) and not _.isArray(args[1]) and not _.isFunction(args[1])
+    opts = args[2]  if _.isObject(args[2]) and not _.isArray(args[2]) and not _.isFunction(args[2])
   unless _.isFunction action
-    if _.isFunction args[2]
+    if _.isFunction args[3]
+      action = args[3]
+    else if _.isFunction args[2]
       action = args[2]
-    else if _.isFunction args[1]
-      action = args[1]
-  task_name = if ns and name
-    "#{ns}:#{name}"
+  task_name = if namespace and name
+    "#{namespace}:#{name}"
   else if name
     name
-  else if ns
-    ns
+  else if namespace
+    namespace
   else
     throw 'Invalid task name: namespace and task name cannot both be empty'
   [task_name, deps, opts, action]
 
 
 # Add a task
-task = (name, deps, opts, action) ->
-  [task_name, deps, opts, action] = getArgs.apply null, arguments
+task = (namespace, name, deps, opts, action) ->
+  [task_name, deps, opts, action] = _getArgs.apply null, arguments
   help.setHelp task_name, deps, opts  unless help.getHelp task_name
   action_wrapper = (cb) ->
     ret = action cb
@@ -81,9 +75,9 @@ task = (name, deps, opts, action) ->
 sh = (cmd, opts = {}) ->
   ps.spawn 'sh', ['-c', cmd], opts
 
+
 # Run a shell command as sudo
 sudo = (cmd, opts = {}) ->
-  # TODO: use sudo npm module
   ps.spawn 'sudo', ['sh', '-ci', cmd], opts
 
 
@@ -93,6 +87,8 @@ parse = (contents) ->
   yieldfor = YIELDFOR.join '|'
   re = new RegExp "^([^#]*?\\s+)(#{yieldfor})\\s(.+?)$", 'mg'
   contents = contents.replace re, '$1yield $2 $3'
+  # Add
+  contents = contents.replace /(\s*)namespace\s+(['"].*)/g, '$1__namespace__ = $2'
   inject contents
 
 
@@ -102,6 +98,8 @@ inject = (contents) ->
   [
     "__stacker__ = require('#{__filename}').dsl"
     vars.join "\n"
+    '__namespace__ = ""'
+    'task = -> args = Array.prototype.slice.call(arguments); args.unshift(__namespace__); __stacker__.task.apply null, args'
     "\n"
     contents
   ]
@@ -114,7 +112,6 @@ YIELDFOR = ['sh', 'sudo']
 # Stacker DSL
 DSL =
   log: log
-  namespace: namespace
   task: task
   sh: sh
   sudo: sudo
@@ -122,8 +119,7 @@ DSL =
   src: gulp.src
   dest: gulp.dest
   watch: gulp.watch
-  help: (name, deps, opts) ->
-    help.setHelp.apply null, getArgs.apply null, arguments
+  help: help
 
 
 module.exports =
