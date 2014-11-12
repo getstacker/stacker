@@ -2,15 +2,23 @@ namespace 'config'
 
 # Default
 task '', ['config:parse'], desc: 'Process config files', ->
+  console.log 'hi!'
+  # .pipe (file) ->
+  #   #process the file
+  # .pipe dest 'config'
+
   # gulp.src conf.gzipFiles
   # .pipe gulp.dest conf.dist
   # src '*.stack'
   # .pipe dest '/config'
   log.info 'start of config >>>'
-  sh 'echo "  hi from sh"'
-  log.info 'hi from config'
-  # src from pipe
-  # write each file
+  # should not process sh some command
+  ret = sh 'echo "hi from sh"'
+  console.log ret
+  ret = sudo 'cat root.test'
+  ret = sudo 'echo hi from sudo'
+
+  log.info '<<< end of config'
 
 task 'show', ['config:parse'], desc: 'Output processed config files to stdout', ->
   # src from pipe
