@@ -1,0 +1,56 @@
+#!/bin/sh -e
+
+: ${STACKER_HOME:=~/.stacker}
+: ${STACKER_BIN:=/usr/local/bin/stacker}
+
+install_stacker() {
+  local pkg_name; pkg_name=stacker
+  printf "\n[CLONING] %s...\n" $pkg_name
+  mkdir -vp $STACKER_HOME/package/stacker
+  cd $STACKER_HOME/package/stacker
+  test -d $pkg_name/.git && git -C ./$pkg_name pull \
+    || git clone https://github.com/getstacker/$pkg_name.git
+  cd $pkg_name
+  printf "\n[INSTALLING] stacker npm modules"
+  ../../nodejs/node/bin/npm install
+  ln -sf $STACKER_HOME/package/stacker/cli/bin/stacker $STACKER_BIN
+}
+
+install_node() {
+  local pkg_name; pkg_name="node-v0.11.14-darwin-x64.tar.gz"
+  local checksum; checksum="074669d2f3d8419496076c55c2743389538996a90e87277ea5bf032f885877ad  $pkg_name"
+  local dir_name; dir_name=`basename -s .tar.gz $pkg_name`
+  local status;
+  printf "\n[DOWNLOADING] NodeJS\n"
+  mkdir -vp $STACKER_HOME/package/nodejs
+  cd $STACKER_HOME/package/nodejs
+  test -d $dir_name && rm -rf $dir_name
+  test -e $pkg_name && rm -f $pkg_name
+  curl -SLo $pkg_name http://nodejs.org/dist/v0.11.14/$pkg_name
+  printf "\n[VERIFYING] NodeJS... "
+  echo "$checksum" > node_shasums.txt
+  set +e
+  shasum -c node_shasums.txt
+  status=$?
+  set -e
+  if [ "$status" != 0 ]; then
+    printf "FAILED CHECKSUM\n\nTry again. NodeJS was not successfully downloaded.\n"
+    exit 1
+  fi
+  printf "\n"
+  tar -xzf $pkg_name
+  ln -sf $dir_name node
+  rm node_shasums.txt
+  rm $pkg_name
+}
+
+main() {
+  install_node
+  install_stacker
+  printf "\n[SUCCESS] installed to $STACKER_HOME\n"
+  printf "\nStacker CLI installed in path:\n%s\n" `which stacker`
+  ls -l `which stacker`
+  printf "\nUsage: stacker help\n"
+}
+
+main

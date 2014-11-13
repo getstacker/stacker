@@ -1,0 +1,24 @@
+#!/bin/sh -e
+
+: ${STACKER_HOME:=~/.stacker}
+: ${STACKER_BIN:=/usr/local/bin/stacker}
+
+uninstall_stacker() {
+  rm -rf $STACKER_HOME
+  rm $STACKER_BIN
+  printf "\n[SUCCESS] uninstalled stacker\n"
+}
+
+main() {
+  printf "\nThese files and directories will be deleted:\n%s\n%s\n\n" $STACKER_HOME $STACKER_BIN
+  while true; do
+    read -p "Continue? [Y/N] " yn
+    case $yn in
+        [Yy]* ) uninstall_stacker; break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer Y or N.";;
+    esac
+  done
+}
+
+main

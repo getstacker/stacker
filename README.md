@@ -1,6 +1,14 @@
 # Stacker: Extensible DevOps Toolbelt
 
 
+# Install
+
+Review [install script](https://github.com/getstacker/stacker/blob/master/install), then...
+
+```bash
+curl -s https://raw.githubusercontent.com/getstacker/stacker/master/install | sh -e
+```
+
 # Plugins
 
 Stacker plugins are NPM modules.
