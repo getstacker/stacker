@@ -9,6 +9,30 @@ Review [install script](https://github.com/getstacker/stacker/blob/master/instal
 curl -s https://raw.githubusercontent.com/getstacker/stacker/master/install | sh -e
 ```
 
+Installation may take awhile and appear to freeze while installing npm modules.
+This is due to a bug in npm 2.0.0 when using npm-shrinkwrap. The install script
+should eventually complete even with the `npm ERR! cb()` error.
+
+### Common Install Errors
+
+```bash
+...
+flags for v8 3.26.33 cached.
+npm ERR! cb() never called!
+```
+
+[StackOverflow thread](http://stackoverflow.com/questions/15393821/npm-err-cb-never-called) and
+[Github issue](https://github.com/npm/npm/issues/5920)
+
+There's a bug in npm that should be fixed in 2.0.2. Rerunning the install script fixes the issues.
+
+# Uninstall
+
+```bash
+curl -s https://raw.githubusercontent.com/getstacker/stacker/master/uninstall | sh -e
+```
+
+
 # Plugins
 
 Stacker plugins are NPM modules.

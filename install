@@ -12,7 +12,12 @@ install_stacker() {
     || git clone https://github.com/getstacker/$pkg_name.git
   cd $pkg_name
   printf "\n[INSTALLING] stacker npm modules"
+  set +e
   ../../nodejs/node/bin/npm install
+  # HACK: rerun install to fix cb() err issue: https://github.com/npm/npm/issues/5920
+  # TODO: remove this hack once npm 2.0.2 is released
+  test "$?" != 0 && ../../nodejs/node/bin/npm install
+  set -e
   ln -sf $STACKER_HOME/package/stacker/cli/bin/stacker $STACKER_BIN
 }
 
