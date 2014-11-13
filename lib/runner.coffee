@@ -36,7 +36,6 @@ inject = (contents) ->
   [
     "__stacker__ = require('#{path.resolve __dirname, './dsl'}').dsl"
     vars.join "\n"
-    '__namespace__ = ""'
     'task = -> args = Array.prototype.slice.call(arguments); args.unshift(__namespace__); __stacker__.task.apply null, args'
     "\n"
     contents
