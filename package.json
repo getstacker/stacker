@@ -15,17 +15,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/airstack/cli.git"
+    "url": "git://github.com/getstacker/stacker.git"
   },
   "keywords": [
-    "airstack"
+    "stacker",
+    "devops",
+    "docker",
+    "cli"
   ],
   "author": "Joe Johnston <joe@simple10.com> (http://simple10.com/)",
   "license": "Apache 2.0",
   "bugs": {
-    "url": "https://github.com/airstack/cli/issues"
+    "url": "https://github.com/getstacker/stacker/issues"
   },
-  "homepage": "https://github.com/airstack/cli",
+  "homepage": "https://github.com/getstacker/stacker",
   "dependencies": {
     "bluebird": "^2.3.10",
     "cli-table": "^0.3.1",
