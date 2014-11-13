@@ -13,14 +13,13 @@ ps = require 'stacker-utils/utils/ps'
 help = require 'help'
 
 
-
 # getArgs
 #
 # Examples:
-#   getArgs 'name', ['dep1', 'dep2'], desc: "help", ->
-#   getArgs 'name', desc: "help", ->
-#   getArgs 'name', ['dep1', 'dep2'], ->
-#   getArgs 'name', ->
+#   getArgs 'namespace', 'name', ['dep1', 'dep2'], desc: "help", ->
+#   getArgs 'namespace', 'name', desc: "help", ->
+#   getArgs 'namespace', 'name', ['dep1', 'dep2'], ->
+#   getArgs 'namespace', 'name', ->
 _getArgs = (namespace, name, deps, opts, action) ->
   args = Array.prototype.slice.call arguments, 0
   unless _.isArray deps
@@ -45,7 +44,16 @@ _getArgs = (namespace, name, deps, opts, action) ->
   [task_name, deps, opts, action]
 
 
-# Add a task
+# Add a task.
+#
+# Omit the namespace param when calling task as it's automatically added by
+# a task wrapper. Order of params is flexible. See _getArgs.
+#
+# @param namespace  Automatically added. See runner.inject
+# @param name       Name of task
+# @param deps       Array of dependent tasks to be run prior to running action
+# @param opts       Options object
+# @param action     Task function
 task = (namespace, name, deps, opts, action) ->
   [task_name, deps, opts, action] = _getArgs.apply null, arguments
   help.setHelp task_name, deps, opts  unless help.getHelp task_name
