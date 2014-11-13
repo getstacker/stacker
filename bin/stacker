@@ -5,11 +5,13 @@
 # to run after it exits in situations where node is conflicting with
 # tty or environment settings.
 
+: ${STACKER_HOME:=~/.stacker}
+
 main() {
   local tempout; tempout=`mktemp -t tmp.out` || exit 1
   local statusfile; statusfile=`mktemp -t tmp.status` || exit 1
   local exitcode;
-  local node; node=$AIRSTACK_HOME/package/nodejs/node/bin/node
+  local node; node=$STACKER_HOME/package/nodejs/node/bin/node
 
   # Absolute path to this script directory
   local dir

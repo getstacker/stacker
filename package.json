@@ -8,7 +8,7 @@
   },
   "preferGlobal": true,
   "bin": {
-    "stacker": "bin/cli"
+    "stacker": "bin/stacker"
   },
   "scripts": {
     "test": "mocha"

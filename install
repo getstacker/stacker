@@ -18,7 +18,7 @@ install_stacker() {
   # TODO: remove this hack once npm 2.0.2 is released
   test "$?" != 0 && ../../nodejs/node/bin/npm install
   set -e
-  ln -sf $STACKER_HOME/package/stacker/cli/bin/stacker $STACKER_BIN
+  ln -sf $STACKER_HOME/package/stacker/stacker/bin/stacker $STACKER_BIN
 }
 
 install_node() {
