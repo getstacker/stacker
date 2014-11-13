@@ -10,7 +10,6 @@ path = require 'path'
 co = require 'co'
 log = require 'log'
 ps = require 'stacker-utils/utils/ps'
-
 help = require 'help'
 
 
@@ -23,7 +22,6 @@ help = require 'help'
 #   getArgs 'name', ['dep1', 'dep2'], ->
 #   getArgs 'name', ->
 _getArgs = (namespace, name, deps, opts, action) ->
-
   args = Array.prototype.slice.call arguments, 0
   unless _.isArray deps
     deps = []
@@ -81,31 +79,6 @@ sudo = (cmd, opts = {}) ->
   ps.spawn 'sudo', ['sh', '-ci', cmd], opts
 
 
-parse = (contents) ->
-  contents = contents.toString()
-  # Add `yield` in front of sh and sudo calls
-  yieldfor = YIELDFOR.join '|'
-  re = new RegExp "^([^#]*?\\s+)(#{yieldfor})\\s(.+?)$", 'mg'
-  contents = contents.replace re, '$1yield $2 $3'
-  # Add
-  contents = contents.replace /(\s*)namespace\s+(['"].*)/g, '$1__namespace__ = $2'
-  inject contents
-
-
-inject = (contents) ->
-  vars = for k,v of DSL
-    "#{k} = __stacker__.#{k}"
-  [
-    "__stacker__ = require('#{__filename}').dsl"
-    vars.join "\n"
-    '__namespace__ = ""'
-    'task = -> args = Array.prototype.slice.call(arguments); args.unshift(__namespace__); __stacker__.task.apply null, args'
-    "\n"
-    contents
-  ]
-  .join "\n"
-
-
 # Add yield in front of these methods
 YIELDFOR = ['sh', 'sudo']
 
@@ -123,5 +96,5 @@ DSL =
 
 
 module.exports =
-  parse: parse
+  yieldfor: YIELDFOR
   dsl: DSL

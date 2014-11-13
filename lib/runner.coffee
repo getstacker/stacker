@@ -18,6 +18,32 @@ help = require 'help'  # global/help
 dsl = require './dsl'
 
 
+
+parse = (contents) ->
+  contents = contents.toString()
+  # Add `yield` in front of async dsl methods
+  yieldfor = dsl.yieldfor.join '|'
+  re = new RegExp "^([^#]*?\\s+)(#{yieldfor})\\s(.+?)$", 'mg'
+  contents = contents.replace re, '$1yield $2 $3'
+  # Convert namespace into local variable
+  contents = contents.replace /(\s*)namespace\s+(['"].*)/g, '$1__namespace__ = $2'
+  inject contents
+
+
+inject = (contents) ->
+  vars = for k,v of dsl.dsl
+    "#{k} = __stacker__.#{k}"
+  [
+    "__stacker__ = require('#{path.resolve __dirname, './dsl'}').dsl"
+    vars.join "\n"
+    '__namespace__ = ""'
+    'task = -> args = Array.prototype.slice.call(arguments); args.unshift(__namespace__); __stacker__.task.apply null, args'
+    "\n"
+    contents
+  ]
+  .join "\n"
+
+
 run = ->
   args = process.argv.slice 2
   opts =
@@ -28,8 +54,8 @@ run = ->
       file = path.resolve __dirname, file
       readFile file, 'utf8'
       .then (contents) ->
-        contents = dsl.parse contents
-        log.debug contents
+        contents = parse contents
+        # log.debug contents
         CoffeeScript.run contents,
           filename: file
       .catch (err) ->
@@ -43,9 +69,6 @@ run = ->
     .catch (err) ->
       log.error err.message or err  unless err == 'NOARGS'
       printHelp()
-
-
-
 
 
 printHelp = ->
