@@ -4,7 +4,7 @@
   "description": "Stacker DevOps toolbelt.",
   "main": "index",
   "engines": {
-    "node": "0.11.14"
+    "node": ">= 0.11.14"
   },
   "preferGlobal": true,
   "bin": {
