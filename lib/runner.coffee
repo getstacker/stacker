@@ -44,6 +44,24 @@ inject = (contents) ->
 
 
 run = ->
+  loadStack 'stack.json'
+  .then loadTasks
+
+
+loadStack = (filename, encoding = 'utf8') ->
+  readFile path.normalize(filename), encoding
+  .then (contents) ->
+    config.stack = JSON.parse contents
+  .catch (err) ->
+    if err.cause and err.cause.code == 'ENOENT'
+      return log.debug 'No stack file:', filename
+    if err instanceof SyntaxError
+      log.error "Invalid JSON syntax in #{filename}:", err.message
+      process.exit 1
+    log.error err.stack
+
+
+loadTasks = ->
   args = process.argv.slice 2
   opts =
     cwd: __dirname
