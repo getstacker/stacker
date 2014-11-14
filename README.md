@@ -3,6 +3,13 @@
 
 # Install
 
+Install via npm or install script.
+
+The preferred method is the install script. This is similar to [brew](http://brew.sh/) where
+the install script clones the main git repo.
+
+### Install Script
+
 Review [install script](https://github.com/getstacker/stacker/blob/master/install), then...
 
 ```bash
@@ -12,6 +19,16 @@ curl -s https://raw.githubusercontent.com/getstacker/stacker/master/install | sh
 Installation may take awhile and appear to freeze while installing npm modules.
 This is due to a bug in npm 2.0.0 when using npm-shrinkwrap. The install script
 should eventually complete even with the `npm ERR! cb()` error.
+
+
+### NPM
+
+It's recommended to use the install script.
+
+```bash
+npm install -g stacker
+```
+
 
 ### Common Install Errors
 
