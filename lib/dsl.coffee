@@ -13,6 +13,13 @@ ps = require 'stacker-utils/utils/ps'
 help = require 'help'
 Table = require 'cli-table'
 
+_.isPromise = (obj) ->
+  obj && 'function' == typeof obj.then
+_.isGenerator = (obj) ->
+  obj && 'function' == typeof obj.next && 'function' == typeof obj.throw
+
+
+
 
 # getArgs
 #
@@ -60,10 +67,10 @@ task = (namespace, name, deps, opts, action) ->
   help.setHelp task_name, deps, opts  unless help.getHelp task_name
   action_wrapper = (cb) ->
     ret = action cb
-    if _.isObject(ret) or _.isArray(ret)
+    if _.isArray(ret) or _.isPromise(ret) or _.isGenerator(ret)
       ret
     else
-      Promise.resolve()
+      Promise.resolve ret
   gulp.task task_name, deps, (cb) ->
     new Promise (resolve, reject) ->
       co( ->
