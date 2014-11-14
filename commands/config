@@ -1,8 +1,27 @@
+lazypipe = require 'lazypipe'
+debug = require 'gulp-debug'
+
 namespace 'config'
+srcFiles = '**/*.stack'
+
+# parseConfigs = lazypipe()
+#   .pipe debug verbose: true
+  # .pipe dest 'dist'
 
 # Default
-task '', ['config:parse'], desc: 'Process config files', ->
+task '', desc: 'Process config files', ->
   console.log 'hi!'
+
+  # ret = sh 'echo "hi from sh" && sleep 1'
+  # console.log '.... between ...'
+  ret = sh 'echo "hi [2] from sh" && sleep 1'
+  console.log '!!!!!'
+  console.log ret
+
+  src srcFiles
+  .pipe debug verbose: true
+
+  # .pipe parseConfigs
   # .pipe (file) ->
   #   #process the file
   # .pipe dest 'config'
@@ -11,26 +30,19 @@ task '', ['config:parse'], desc: 'Process config files', ->
   # .pipe gulp.dest conf.dist
   # src '*.stack'
   # .pipe dest '/config'
-  log.info 'start of config >>>'
-  # should not process sh some command
-  ret = sh 'echo "hi from sh"'
-  console.log ret
-  ret = sudo 'cat root.test'
-  ret = sudo 'echo hi from sudo'
 
-  log.info '<<< end of config'
+  # log.info 'start of config >>>'
+  # # should not process sh some command
+  # ret = sudo 'cat root.test'
+  # ret = sudo 'echo hi from sudo'
 
-task 'show', ['config:parse'], desc: 'Output processed config files to stdout', ->
+  # log.info '<<< end of config'
+
+task 'show', desc: 'Output processed config files to stdout', ->
   # src from pipe
   # output to stdout
 
-task 'parse', desc: 'Parse config file templates', ->
-  log.info 'hi from config:parse'
-  # src: *.stack
-  # filter on files that have #!stacker
-  # parse header as yaml and add to config
-  # if not yet set, add config.output as file without the .stack
-  # parse file as eco template
+task 'debug', desc: 'Show debug output', ->
 
 
 
