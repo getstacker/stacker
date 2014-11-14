@@ -1,21 +1,24 @@
 
-path = require 'path'
-gulp = require 'gulp'
-fs = require 'fs'
-glob = require 'glob'
 CoffeeScript = require 'coffee-script/lib/coffee-script/coffee-script'
+gulp = require 'gulp'
+path = require 'path'
 Promise = require 'bluebird'
-readFile = Promise.promisify fs.readFile
+glob = Promise.promisify require 'glob'
+readFile = Promise.promisify require('fs').readFile
 _ = require 'lodash'
 
 # Make files in global dir available to all plugins via `require('module')`
 process.env.NODE_PATH = path.resolve(__dirname, './global') + path.delimiter + process.env.NODE_PATH
 require('module').Module._initPaths()  # Hack
 
-log = require 'log'    # global/log
-help = require 'help'  # global/help
 dsl = require './dsl'
 
+# global
+log = require 'log'
+help = require 'help'
+config = require 'config'
+
+COMMANDS_SRC = '../**/**/commands/*'
 
 
 parse = (contents) ->
@@ -66,26 +69,32 @@ loadTasks = ->
   opts =
     cwd: __dirname
     sync: true
-  glob '../**/**/commands/*', opts, (err, files) ->
-    files = for file in files
-      file = path.resolve __dirname, file
-      readFile file, 'utf8'
-      .then (contents) ->
-        contents = parse contents
-        # log.debug contents
-        CoffeeScript.run contents,
-          filename: file
-      .catch (err) ->
-        log.error "Invalid task file: #{path.relative process.cwd(), file}"
-        log.error "-->  #{err.message}"
-        log.error err.stack
-    Promise.all files
-    .then ->
-      throw 'NOARGS'  unless args[0]
-      gulp.start args[0]
+  glob COMMANDS_SRC, opts
+  .then (files) ->
+    readTaskFiles files
+  .all()
+  .then ->
+    throw 'NOARGS'  unless args[0]
+    gulp.start args[0]
+  .catch (err) ->
+    log.error err.message or err  unless err == 'NOARGS'
+    dsl.dsl.printHelp()
+
+
+readTaskFiles = (files) ->
+  for file in files
+    file = path.resolve __dirname, file
+    readFile file, 'utf8'
+    .then (contents) ->
+      contents = parse contents
+      # log.debug contents
+      CoffeeScript.run contents,
+        filename: file
     .catch (err) ->
-      log.error err.message or err  unless err == 'NOARGS'
-      dsl.dsl.printHelp()
+      log.error "Invalid task file: #{path.relative process.cwd(), file}"
+      log.error "-->  #{err.message}"
+      log.error err.stack
+
 
 
 module.exports =
