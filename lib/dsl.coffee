@@ -11,6 +11,7 @@ co = require 'co'
 log = require 'log'
 ps = require 'stacker-utils/utils/ps'
 help = require 'help'
+Table = require 'cli-table'
 
 
 # getArgs
@@ -87,6 +88,16 @@ sudo = (cmd, opts = {}) ->
   ps.spawn 'sudo', ['sh', '-ci', cmd], opts
 
 
+printHelp = ->
+  table = new Table
+    head: ['Command', 'Description']
+    style:
+      compact: true
+  for name, h of help.getHelp()
+    table.push [name, h.opts.desc or '']
+  console.log table.toString()
+
+
 # Add yield in front of these methods
 YIELDFOR = ['sh', 'sudo']
 
@@ -100,8 +111,7 @@ DSL =
   src: gulp.src
   dest: gulp.dest
   watch: gulp.watch
-  help: help
-
+  printHelp: printHelp
 
 module.exports =
   yieldfor: YIELDFOR

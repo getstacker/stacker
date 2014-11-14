@@ -7,7 +7,6 @@ CoffeeScript = require 'coffee-script/lib/coffee-script/coffee-script'
 Promise = require 'bluebird'
 readFile = Promise.promisify fs.readFile
 _ = require 'lodash'
-Table = require 'cli-table'
 
 # Make files in global dir available to all plugins via `require('module')`
 process.env.NODE_PATH = path.resolve(__dirname, './global') + path.delimiter + process.env.NODE_PATH
@@ -32,11 +31,12 @@ parse = (contents) ->
 
 inject = (contents) ->
   vars = for k,v of dsl.dsl
-    "#{k} = __stacker__.#{k}"
+    "#{k} = __stacker__.dsl.#{k}"
   [
-    "__stacker__ = require('#{path.resolve __dirname, './dsl'}').dsl"
+    "__stacker__ = {dsl: require('#{path.resolve __dirname, './dsl'}').dsl}"
     vars.join "\n"
-    'task = -> args = Array.prototype.slice.call(arguments); args.unshift(__namespace__); __stacker__.task.apply null, args'
+    '__namespace__ = ""'
+    'task = -> args = Array.prototype.slice.call(arguments); args.unshift(__namespace__); __stacker__.dsl.task.apply null, args'
     "\n"
     contents
   ]
@@ -67,17 +67,7 @@ run = ->
       gulp.start args[0]
     .catch (err) ->
       log.error err.message or err  unless err == 'NOARGS'
-      printHelp()
-
-
-printHelp = ->
-  table = new Table
-    head: ['Command', 'Description']
-    style:
-      compact: true
-  for name, h of help.getHelp()
-    table.push [name, h.opts.desc or '']
-  console.log table.toString()
+      dsl.dsl.printHelp()
 
 
 module.exports =
