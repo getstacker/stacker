@@ -54,8 +54,15 @@ _getArgs = (namespace, name, deps, opts, action) ->
 
 # Add a task.
 #
-# Omit the namespace param when calling task as it's automatically added by
+# Omit the namespace param when calling task as it's automatically injected by
 # a task wrapper. Order of params is flexible. See _getArgs.
+#
+# In order for task dependencies to complete before a task is run, the dependencies
+# need to provide async hints. This can happen by returning a stream or promise or
+# calling the callback function passed into the action.
+#
+# Task is a wrapper around
+# [Orchestrator.add](https://github.com/orchestrator/orchestrator#orchestratoraddname-deps-function)
 #
 # @param namespace  Automatically added. See runner.inject
 # @param name       Name of task

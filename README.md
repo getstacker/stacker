@@ -1,5 +1,13 @@
 # Stacker: Extensible DevOps Toolbelt
 
+Stacker is a flexible task runner with built-in configuration templating and plugin support.
+
+It's compatible with gulp plugins.
+
+Gulp is comprised of two core components:
+1. [orchestrator](https://github.com/orchestrator/orchestrator) for running tasks concurrently
+2. [vinyl-fs](https://github.com/wearefractal/vinyl-fs) for globbing and piping files
+
 
 # Install
 
@@ -79,6 +87,7 @@ stacker link my-new-plugin
 
 - https://github.com/gulpjs/gulp/blob/master/docs/API.md
 - https://github.com/gulpjs/gulp/tree/master/docs/recipes
+- https://github.com/osscafe/gulp-cheatsheet
 
 
 
