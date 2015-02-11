@@ -1,3 +1,6 @@
+# !!! THIS PROJECT IS WIP AND NOT YET READY FOR PUBLIC USE !!!
+
+
 # Stacker: Extensible DevOps Toolbelt
 
 Stacker is a flexible task runner with built-in configuration templating and plugin support.
