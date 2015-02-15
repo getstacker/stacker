@@ -1,5 +1,7 @@
 # !!! THIS PROJECT IS WIP AND NOT YET READY FOR PUBLIC USE !!!
 
+[![Join the chat at https://gitter.im/getstacker/stacker](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/getstacker/stacker?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 # Stacker: Extensible DevOps Toolbelt
 
