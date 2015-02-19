@@ -26,7 +26,7 @@ the install script clones the main git repo.
 Review [install script](https://github.com/getstacker/stacker/blob/master/install), then...
 
 ```bash
-curl -sS --tlsv1.2 https://raw.githubusercontent.com/getstacker/stacker/master/install | sh -e
+sh -e <(curl -sS --tlsv1.2 https://raw.githubusercontent.com/getstacker/stacker/master/install)
 ```
 
 Installation may take awhile and appear to freeze while installing npm modules.
