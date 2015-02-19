@@ -3,20 +3,61 @@
 : ${STACKER_HOME:=~/.stacker}
 : ${STACKER_BIN:=/usr/local/bin/stacker}
 
+remove_stacker_bin() {
+  if [ ! -f "${STACKER_BIN}" ]; then
+    printf "\n%s does not exist\n" "${STACKER_BIN}"
+    return
+  fi
+
+  # Only remove stacker bin if it is a symbolic link
+  if [ ! -h "${STACKER_BIN}" ]; then
+    printf "\n\e[0;31m[WARNING]\e[0m \e[0;36m%s\e[0m in not a symlink\n" "${STACKER_BIN}"
+    printf "Please manually remove the file.\n\n"
+    return
+  fi
+
+  # Make sure bin is a symlink back to a file in STACKER_HOME
+  local link; link=$(ls -dl "${STACKER_BIN}")
+  link="$(dirname "${link#*-> }")"
+  if [ "${link#*$STACKER_HOME}" = "${link}" ]; then
+    printf "\n\e[0;31m[WARNING]\e[0m \e[0;36m%s\e[0m does not appear to be the correct stacker bin\n" "${STACKER_BIN}"
+    printf "Please manually remove the file.\n\n"
+    return
+  fi
+  unlink "${STACKER_BIN}"
+  printf "\n\e[0;32m[REMOVED]\e[0m \e[0;36m%s\e[0m\n" "${STACKER_BIN}"
+}
+
+remove_stacker_dir() {
+  # Make sure stacker home dir is set and not root
+  if [ -z "${STACKER_HOME}" ] || [ "${STACKER_HOME}" = "/" ]; then
+    printf "\n\e[0;31m[WARNING]\e[0m \e[0;36m%s\e[0m is not safe to delete\n" "${STACKER_HOME}"
+    printf "Please manually remove the stacker directory.\n\n"
+    return
+  fi
+  # Unlink files in stacker package dirs for safety
+  # Symlinks are often added here during stacker development
+  find "${STACKER_HOME}/package/stacker" -lname '*' -exec unlink {} \;
+  rm -rf "${STACKER_HOME}"
+  printf "\n\e[0;32m[REMOVED]\e[0m \e[0;36m%s\e[0m\n" "${STACKER_HOME}"
+}
+
 uninstall_stacker() {
-  rm -rf $STACKER_HOME
-  rm $STACKER_BIN
-  printf "\n[SUCCESS] uninstalled stacker\n"
+  remove_stacker_bin
+  remove_stacker_dir
+  printf "\nStacker has been uninstalled.\n"
 }
 
 main() {
-  printf "\nThese files and directories will be deleted:\n%s\n%s\n\n" $STACKER_HOME $STACKER_BIN
+  printf "\nThe following files will be deleted to uninstall stacker...\n"
+  printf "bin: \e[0;36m%s\e[0m\ndir: \e[0;36m%s\e[0m\n" "${STACKER_BIN}" "${STACKER_HOME}"
   while true; do
-    read -p "Continue? [Y/N] " yn
+    printf "\n\e[0;35mUninstall stacker?\e[0m [y/N] "
+    read yn
     case $yn in
         [Yy]* ) uninstall_stacker; break;;
-        [Nn]* ) exit;;
-        * ) echo "Please answer Y or N.";;
+        [Nn]* ) exit 0;;
+        * ) exit 0;;
     esac
   done
 }
