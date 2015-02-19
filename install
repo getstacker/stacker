@@ -106,7 +106,7 @@ install_node() {
 link_stacker() {
   printf "\n\e[0;36m[LINKING]\e[0m stacker CLI\n%s\n-> %s\n" "${STACKER_HOME_BIN}" "${STACKER_BIN}"
   ln -sf "${STACKER_HOME_BIN}" "${STACKER_BIN}"
-  if [ "$(which stacker)" != "${STACKER_HOME_BIN}" ]; then
+  if [ "$(which stacker)" != "${STACKER_BIN}" ]; then
     printf "\n\e[0;31m[WARNING]\e[0m another program named stacker appears earlier in the path\n"
     printf "%s\n" "$(which stacker)"
   fi
