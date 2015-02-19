@@ -3,58 +3,85 @@
 : ${STACKER_HOME:=~/.stacker}
 : ${STACKER_BIN:=/usr/local/bin/stacker}
 
+NODE_VERSION=v1.2.0
+NODE_BASE_URL=https://iojs.org/dist/
+
+PLATFORM=$(uname | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+
+unsupported() {
+  echo 'Sorry, your OS is not currently supported by the stacker install script.'
+  echo 'Please add an issue https://github.com/getstacker/stacker/issues'
+  exit 1
+}
+
+get_arch(){
+  if [ "$(echo "${ARCH}" | cut -c5-6)" = "64" ]; then
+    ARCH=x64
+  elif [ "$(echo "${ARCH}" | cut -c1-3)" = "x86" ]; then
+    ARCH=x86
+  else
+    unsupported
+  fi
+}
+
 install_stacker() {
   local pkg_name; pkg_name=stacker
   printf "\n[CLONING] %s...\n" $pkg_name
-  mkdir -vp $STACKER_HOME/package/stacker
-  cd $STACKER_HOME/package/stacker
-  test -d $pkg_name/.git && git -C ./$pkg_name pull \
-    || git clone https://github.com/getstacker/$pkg_name.git
-  cd $pkg_name
+  mkdir -vp "${STACKER_HOME}/package/stacker"
+  cd "${STACKER_HOME}/package/stacker"
+  if test -d $pkg_name/.git; then
+    git -C ./$pkg_name pull
+  else
+    git clone https://github.com/getstacker/$pkg_name.git
+  fi
+}
+
+install_stacker_packages(){
   printf "\n[INSTALLING] stacker npm modules"
+  cd "${STACKER_HOME}/package/stacker/stacker"
   set +e
   ../../nodejs/node/bin/npm install
   # HACK: rerun install to fix cb() err issue: https://github.com/npm/npm/issues/5920
   # TODO: remove this hack once npm 2.0.2 is released
   test "$?" != 0 && ../../nodejs/node/bin/npm install
   set -e
-  ln -sf $STACKER_HOME/package/stacker/stacker/bin/stacker $STACKER_BIN
+  ln -sf "${STACKER_HOME}/package/stacker/stacker/bin/stacker" "${STACKER_BIN}"
 }
 
 install_node() {
-  local pkg_name; pkg_name="node-v0.11.14-darwin-x64.tar.gz"
-  local checksum; checksum="074669d2f3d8419496076c55c2743389538996a90e87277ea5bf032f885877ad  $pkg_name"
-  local dir_name; dir_name=`basename -s .tar.gz $pkg_name`
+  local pkg_name; pkg_name="iojs-${NODE_VERSION}-${PLATFORM}-${ARCH}.tar.gz"
+  local dir_name; dir_name=$(basename -s .tar.gz "${pkg_name}")
   local status;
-  printf "\n[DOWNLOADING] NodeJS\n"
-  mkdir -vp $STACKER_HOME/package/nodejs
-  cd $STACKER_HOME/package/nodejs
-  test -d $dir_name && rm -rf $dir_name
-  test -e $pkg_name && rm -f $pkg_name
-  curl -SLo $pkg_name http://nodejs.org/dist/v0.11.14/$pkg_name
-  printf "\n[VERIFYING] NodeJS... "
-  echo "$checksum" > node_shasums.txt
+  printf "\n[DOWNLOADING] Node io.js\n"
+  mkdir -vp "${STACKER_HOME}/package/iojs"
+  cd "${STACKER_HOME}/package/iojs"
+  test -d "${dir_name}" && rm -rf "${dir_name}"
+  test -e "${pkg_name}" && rm -f "${pkg_name}"
+  curl -SLo "${pkg_name}" "${NODE_BASE_URL}/${pkg_name}"
+  printf "\n[VERIFYING] Node io.js"
   set +e
-  shasum -c node_shasums.txt
+  shasum -a 256 -c "${STACKER_HOME}/package/stacker/stacker/SHASUMS256.txt"
   status=$?
   set -e
   if [ "$status" != 0 ]; then
-    printf "FAILED CHECKSUM\n\nTry again. NodeJS was not successfully downloaded.\n"
+    printf "FAILED CHECKSUM\n\nTry again. Node io.js was not successfully downloaded.\n"
     exit 1
   fi
   printf "\n"
-  tar -xzf $pkg_name
-  ln -sf $dir_name node
+  tar -xzf "${pkg_name}"
+  ln -sf "${dir_name}" node
   rm node_shasums.txt
-  rm $pkg_name
+  rm "${pkg_name}"
 }
 
 main() {
-  install_node
   install_stacker
-  printf "\n[SUCCESS] installed to $STACKER_HOME\n"
-  printf "\nStacker CLI installed in path:\n%s\n" `which stacker`
-  ls -l `which stacker`
+  install_node
+  install_stacker_packages
+  printf "\n[SUCCESS] installed to %s\n" "${STACKER_HOME}"
+  printf "\nStacker CLI installed in path:\n%s\n" "$(which stacker)"
+  ls -l "$(which stacker)"
   printf "\nUsage: stacker help\n"
 }
 
