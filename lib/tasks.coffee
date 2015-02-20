@@ -5,6 +5,7 @@ readFile = Promise.promisify require('fs').readFile
 CoffeeScript = require 'coffee-script/lib/coffee-script/coffee-script'
 _ = require 'lodash'
 dsl = require './dsl'
+log = require 'log'
 
 
 COMMANDS_SRC = '../**/**/tasks/*'
