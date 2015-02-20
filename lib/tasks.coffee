@@ -10,10 +10,10 @@ dsl = require './dsl'
 COMMANDS_SRC = '../**/**/tasks/*'
 
 
-loadTasks = ->
+load = ->
   opts =
     cwd: __dirname
-    sync: true
+    sync: false
   glob COMMANDS_SRC, opts
   .then (files) ->
     readTaskFiles files
@@ -61,5 +61,5 @@ inject = (contents) ->
 
 
 module.exports =
-  load: loadTasks
+  load: load
 
