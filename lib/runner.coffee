@@ -7,7 +7,7 @@ readFile = Promise.promisify require('fs').readFile
 process.env.NODE_PATH = path.resolve(__dirname, './global') + path.delimiter + process.env.NODE_PATH
 require('module').Module._initPaths()  # Hack
 
-dsl = require './dsl'
+dsl = require('./dsl').dsl
 tasks = require './tasks'
 
 # global
@@ -17,25 +17,24 @@ config = require 'config'
 
 
 run = ->
-  loadStack 'stack.json'
-  # loadConfig
+  loadConfig 'stack.json'
   .then tasks.load
   .then ->
     args = process.argv.slice 2
     throw 'NOARGS'  unless args[0]
     gulp.start args[0]
   .catch (err) ->
-    log.error err.message or err  unless err == 'NOARGS'
-    dsl.dsl.printHelp()
+    log.error(err.message || err)  unless err == 'NOARGS'
+    dsl.printHelp()
 
 
-loadStack = (filename, encoding = 'utf8') ->
+loadConfig = (filename, encoding = 'utf8') ->
   readFile path.normalize(filename), encoding
   .then (contents) ->
     config.stack = JSON.parse contents
   .catch (err) ->
     if err.cause and err.cause.code == 'ENOENT'
-      return log.debug 'No stack file:', filename
+      return log.warn 'No stack file:', filename
     if err instanceof SyntaxError
       log.error "Invalid JSON syntax in #{filename}:", err.message
       process.exit 1
