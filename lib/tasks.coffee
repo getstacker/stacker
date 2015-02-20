@@ -7,7 +7,7 @@ _ = require 'lodash'
 dsl = require './dsl'
 
 
-COMMANDS_SRC = '../**/**/commands/*'
+COMMANDS_SRC = '../**/**/tasks/*'
 
 
 loadTasks = ->
