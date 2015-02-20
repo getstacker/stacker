@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 # Capture node output and status code for passing commands back to shell.
 # This snippet is useful for running a node script that outputs a command
@@ -6,41 +6,39 @@
 # tty or environment settings.
 
 : ${STACKER_HOME:=~/.stacker}
+: ${STACKER_NODE:=${STACKER_HOME}/package/iojs/node/bin/iojs}
+: ${STACKER_NODE_OPTS:=--es_staging}
+: ${STACKER_START_SCRIPT:=${STACKER_HOME}/package/stacker/stacker/index.js}
+
 
 main() {
-  local tempout; tempout=`mktemp -t tmp.out` || exit 1
-  local statusfile; statusfile=`mktemp -t tmp.status` || exit 1
-  local exitcode;
-  local node; node=$STACKER_HOME/package/nodejs/node/bin/node
+  "${STACKER_NODE}" "${STACKER_NODE_OPTS}" "${STACKER_START_SCRIPT}" "$@"
 
-  # Absolute path to this script directory
-  local dir
-  cd "`dirname '$0'`"
-  dir=`pwd`
-  cd - > /dev/null
-
+  # local tempout; tempout=$(mktemp -t tmp.out) || exit 1
+  # local statusfile; statusfile=$(mktemp -t tmp.status) || exit 1
+  # local exitcode;
   # Send stdout to $tempout for later parsing
-  { $node --harmony $dir/index.js $@; echo $? > $statusfile; } | tee $tempout
-  exitcode=`cat $statusfile`
+  # { "${STACKER_NODE}" "${STACKER_NODE_OPTS}" "${STACKER_START_SCRIPT}" "$@"; echo $? > "$statusfile"; } | tee "$tempout"
+  # exitcode=$(cat "$statusfile")
+  # This is a bit hacky but it works.
+  # For commands that need to run in the current shell,
+  # the CLI prints "EXEC::$CMD" and returns code=2.
+  # if [ "$exitcode" = 2 ]; then
+  #   local output; output=$(tail -n1 "$tempout")
+  #   if [ ! "${output##EXEC::*}" ]; then
+  #     output=$(echo "$output" | sed -e 's/^EXEC:://')
+  #     printf "\nRUNNING COMMAND >> %s\n" "$output"
+  #     eval "$output"
+  #   fi
+  # fi
 
+  # EXAMPLE
   # Run script in background and wait for it to exit
   # eval node --harmony cli.js $@ > $tempfile &
   # for job in `jobs -p`; do
   #   # Set exitcode if not 0
   #   wait $job || let "exitcode=$?"
   # done
-
-  # This is a bit hacky but it works.
-  # For commands that need to run in the current shell,
-  # the CLI prints "EXEC::$CMD" and returns code=2.
-  if [ "$exitcode" = 2 ]; then
-    local output; output=`tail -n1 $tempout`
-    if [ ! "${output##EXEC::*}" ]; then
-      output=`echo $output | sed -e 's/^EXEC:://'`
-      printf "\nRUNNING COMMAND >> $output\n"
-      eval $output
-    fi
-  fi
 }
 
 main "$@"
