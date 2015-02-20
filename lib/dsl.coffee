@@ -28,7 +28,7 @@ _.isGenerator = (obj) ->
 #   getArgs 'namespace', 'name', desc: "help", ->
 #   getArgs 'namespace', 'name', ['dep1', 'dep2'], ->
 #   getArgs 'namespace', 'name', ->
-_getArgs = (namespace, name, deps, opts, action) ->
+getArgs = (namespace, name, deps, opts, action) ->
   args = Array.prototype.slice.call arguments, 0
   unless _.isArray deps
     deps = []
@@ -55,7 +55,7 @@ _getArgs = (namespace, name, deps, opts, action) ->
 # Add a task.
 #
 # Omit the namespace param when calling task as it's automatically injected by
-# a task wrapper. Order of params is flexible. See _getArgs.
+# a task wrapper. Order of params is flexible. See getArgs.
 #
 # In order for task dependencies to complete before a task is run, the dependencies
 # need to provide async hints. This can happen by returning a stream or promise or
@@ -70,7 +70,7 @@ _getArgs = (namespace, name, deps, opts, action) ->
 # @param opts       Options object
 # @param action     Task function
 task = (namespace, name, deps, opts, action) ->
-  [task_name, deps, opts, action] = _getArgs.apply null, arguments
+  [task_name, deps, opts, action] = getArgs.apply null, arguments
   help.setHelp task_name, deps, opts  unless help.getHelp task_name
   action_wrapper = (cb) ->
     ret = action cb
