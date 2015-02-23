@@ -3,13 +3,13 @@
 : ${STACKER_HOME:=~/.stacker}
 : ${STACKER_BIN:=/usr/local/bin/stacker}
 
-NODE_VERSION=v1.2.0
+NODE_VERSION=v1.3.0
 NODE_BASE_URL=https://iojs.org/dist/${NODE_VERSION}/
 NODE_DIR=${STACKER_HOME}/package/iojs/
 
-NODE_CHECKSUM_darwin_x64=07fcc65f3c6e7ecd45f9139c67c5c904226247f6f9da57b88478153b8db21d63
-NODE_CHECKSUM_linux_x64=bf475addb9e549f7005d61c13acdbefcf1e8e0fc60c73448c9baedc9795910fa
-NODE_CHECKSUM_linux_x86=4d2d9a158fb4aff30dd3b7c354d084d95b7ba43fc3bb7dfd77284934e390ef85
+NODE_CHECKSUM_darwin_x64=00c45575b8ce578434038655daf09903361edf5c96858e2581647f349e14a8cd
+NODE_CHECKSUM_linux_x64=3fa309fce40a9ad94a612c91443034456d6e109e4e63a039f72e3ea5fc31e592
+NODE_CHECKSUM_linux_x86=3c747f9af20824a085967042055032838acf100e35d4a90a68e67bb478aff2e7
 
 STACKER_HOME_BIN=${STACKER_HOME}/package/stacker/stacker/bin/stacker
 
@@ -60,12 +60,14 @@ install_stacker() {
   local pkg_name; pkg_name=stacker
   local pkg_url; pkg_url="https://github.com/getstacker/${pkg_name}.git"
   local pkg_dir; pkg_dir="${STACKER_HOME}/package/stacker"
-  printf "\n\e[0;36m[CLONING]\e[0m %s\n%s\n-> %s\n" "${pkg_name}" "${pkg_url}" "${pkg_dir}"
+  printf "\n\e[0;36m[INSTALLING]\e[0m %s\n%s\n-> %s\n" "${pkg_name}" "${pkg_url}" "${pkg_dir}"
   mkdir -vp "${pkg_dir}"
   cd "${STACKER_HOME}/package/stacker"
   if test -d $pkg_name/.git; then
+    printf "Git pull... "
     git -C ./$pkg_name pull
   else
+    printf "Git clone... "
     git clone "${pkg_url}"
   fi
 }
@@ -82,13 +84,15 @@ install_node() {
   local dir_name; dir_name=$(basename -s .tar.gz "${pkg_name}")
   local node_url; node_url=${NODE_BASE_URL}${pkg_name}
   local checksum;
-  printf "\n\e[0;36m[DOWNLOADING]\e[0m Node io.js\n%s\n-> %s\n" "${node_url}" "${NODE_DIR}"
+  printf "\n\e[0;36m[INSTALLING]\e[0m Node io.js %s\n%s\n-> %s\n" "${NODE_VERSION}" "${node_url}" "${NODE_DIR}"
+  remove_dir "${NODE_DIR}"
   mkdir -vp "${NODE_DIR}"
   cd "${NODE_DIR}"
   test -d "${dir_name}" && rm -rf "${dir_name}"
   test -e "${pkg_name}" && rm -f "${pkg_name}"
+  printf "Downloading...\n"
   curl -SLo "${pkg_name}" "${node_url}"
-  printf "\n\e[0;36m[VERIFYING]\e[0m Node io.js\n"
+  printf "\nVerifying node io.js\n"
   checksum=NODE_CHECKSUM_${PLATFORM}_${ARCH}
   echo "${!checksum}"
   if [ "$(shasum -b -a 256 "${pkg_name}" | cut -c1-64)" = "${!checksum}" ]; then
@@ -99,17 +103,28 @@ install_node() {
     exit 1
   fi
   tar -xzf "${pkg_name}"
-  ln -sf "${dir_name}" node
+  ln -sfn "${dir_name}" node
   rm "${pkg_name}"
 }
 
 link_stacker() {
-  printf "\n\e[0;36m[LINKING]\e[0m stacker CLI\n%s\n-> %s\n" "${STACKER_HOME_BIN}" "${STACKER_BIN}"
+  printf "\n\e[0;36m[LINKING]\e[0m stacker bin\n%s\n-> %s\n" "${STACKER_HOME_BIN}" "${STACKER_BIN}"
   ln -sf "${STACKER_HOME_BIN}" "${STACKER_BIN}"
   if [ "$(which stacker)" != "${STACKER_BIN}" ]; then
     printf "\n\e[0;31m[WARNING]\e[0m another program named stacker appears earlier in the path\n"
     printf "%s\n" "$(which stacker)"
   fi
+}
+
+remove_dir() {
+  local dir; dir="$1"
+  # Only allow removing dir if nested in $STACKER_HOME
+  if [ "${dir#*$STACKER_HOME}" = "${dir}" ]; then
+    printf "\e[01;31m[ERROR]\e[0m Refusing to remove dir: %s\n" "${dir}"
+    exit 1
+  fi
+  printf "Removing dir: %s\n" "${dir}"
+  rm -rf "${dir}"
 }
 
 main() {
