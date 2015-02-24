@@ -1,8 +1,10 @@
 gulp = require 'gulp'
 path = require 'path'
+yaml = require 'js-yaml'
 
 dsl = require('./dsl').dsl
 tasks = require './tasks'
+args = require './args'
 
 # global
 _ = require 'stacker/_'
@@ -14,29 +16,61 @@ readFile = Promise.promisify require('fs').readFile
 
 
 run = ->
-  loadConfig 'stack.json'
+  args.parse()
+  loadConfig args.get 'stackerfile'
   .then tasks.load
   .then ->
-    args = process.argv.slice 2
-    throw 'NOARGS'  unless args[0]
-    gulp.start args[0]
+    cmd = args.get 'command'
+    throw 'NOARGS'  unless cmd
+    gulp.start cmd
   .catch (err) ->
-    log.error(err.message || err)  unless err == 'NOARGS'
+    log.error(err.message or err)  unless err == 'NOARGS'
     dsl.printHelp()
 
 
-loadConfig = (filename, encoding = 'utf8') ->
-  readFile path.normalize(filename), encoding
-  .then (contents) ->
-    config.stack = JSON.parse contents
-  .catch (err) ->
-    if err.cause and err.cause.code == 'ENOENT'
-      return log.warn 'No stack file:', filename
-    if err instanceof SyntaxError
-      log.error "Invalid JSON syntax in #{filename}:", err.message
-      process.exit 1
-    log.error err.stack
+loadConfig = (stackerfile) ->
+  # Use the first stacker.* file found
+  files = stackerfile and [stackerfile] or ['stacker.json', 'stacker.yaml', 'stacker.yml']
+  files = [args.config]  if args.config
+  promises = for filename in files
+    do (filename) ->
+      readFile path.normalize(filename), 'utf8'
+      .then (contents) ->
+        [ filename, contents ]
+  Promise.any promises
+  .spread (filename, contents) ->
+    ext = filename.split('.').pop()
+    switch ext
+      when 'yaml', 'yml'
+        config.stacker = yaml.safeLoad contents
+      when 'json'
+        config.stacker = JSON.parse contents
+      else
+        throw "Unsupported stacker config file type: #{ext}"
+    # log.debug config
+    # args.applyToConfig config
 
+  # Catch errors where nothing was resolved by Promise.any
+  .catch Promise.AggregateError, (errors) ->
+    paths = for err in errors
+      if err.code == 'ENOENT'
+        err.path
+      else
+        log.error err
+        process.exit 1
+    log.warn 'No stacker config file found: %s', paths.join(', ')
+
+  # Catch file processing errors
+  .catch (err) ->
+    if err instanceof SyntaxError
+      log.error 'Invalid JSON syntax in %s:', filename, err.message
+      log.error err
+    else if err instanceof yaml.YAMLException
+      log.error 'Invalid YAML in %s:', filename, err.message
+    else
+      log.error err
+    log.error err.stack  if err.stack
+    process.exit 1
 
 module.exports =
   run: run

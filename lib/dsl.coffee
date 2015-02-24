@@ -15,15 +15,14 @@ ps = require('stacker/utils').ps
 
 
 
-
-# getArgs
+# Get task function arguments
 #
 # Examples:
-#   getArgs 'namespace', 'name', ['dep1', 'dep2'], desc: "help", ->
-#   getArgs 'namespace', 'name', desc: "help", ->
-#   getArgs 'namespace', 'name', ['dep1', 'dep2'], ->
-#   getArgs 'namespace', 'name', ->
-getArgs = (namespace, name, deps, opts, action) ->
+#   getTaskArgs 'namespace', 'name', ['dep1', 'dep2'], desc: "help", ->
+#   getTaskArgs 'namespace', 'name', desc: "help", ->
+#   getTaskArgs 'namespace', 'name', ['dep1', 'dep2'], ->
+#   getTaskArgs 'namespace', 'name', ->
+getTaskArgs = (namespace, name, deps, opts, action) ->
   args = Array.prototype.slice.call arguments, 0
   unless _.isArray deps
     deps = []
@@ -50,7 +49,7 @@ getArgs = (namespace, name, deps, opts, action) ->
 # Add a task.
 #
 # Omit the namespace param when calling task as it's automatically injected by
-# a task wrapper. Order of params is flexible. See getArgs.
+# a task wrapper. Order of params is flexible. See getTaskArgs.
 #
 # In order for task dependencies to complete before a task is run, the dependencies
 # need to provide async hints. This can happen by returning a stream or promise or
@@ -65,11 +64,11 @@ getArgs = (namespace, name, deps, opts, action) ->
 # @param opts       Options object
 # @param action     Task function
 task = (namespace, name, deps, opts, action) ->
-  [task_name, deps, opts, action] = getArgs.apply null, arguments
+  [task_name, deps, opts, action] = getTaskArgs.apply null, arguments
   help.setHelp task_name, deps, opts  unless help.getHelp task_name
   action_wrapper = (cb) ->
     ret = action cb
-    if _.isArray(ret) or _.isPromise(ret) or _.isGenerator(ret)
+    if _.isArray(ret) or isPromise(ret) or isGenerator(ret)
       ret
     else
       Promise.resolve ret
@@ -81,7 +80,7 @@ task = (namespace, name, deps, opts, action) ->
       catch err
         Promise.reject err
     .catch (err) ->
-      log.error err.message || err
+      log.error err.message or err
       log.error err.stack
 
 
@@ -93,16 +92,6 @@ sh = (cmd, opts = {}) ->
 # Run a shell command as sudo
 sudo = (cmd, opts = {}) ->
   ps.spawn 'sudo', ['sh', '-ci', cmd], opts
-
-
-printHelp = ->
-  table = new Table
-    head: ['Command', 'Description']
-    style:
-      compact: true
-  for name, h of help.getHelp()
-    table.push [name, h.opts.desc or '']
-  console.log table.toString()
 
 
 # Add yield in front of these methods
@@ -118,7 +107,6 @@ DSL =
   src: gulp.src
   dest: gulp.dest
   watch: gulp.watch
-  printHelp: printHelp
 
 module.exports =
   yieldfor: YIELDFOR
