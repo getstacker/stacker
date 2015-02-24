@@ -4,19 +4,14 @@
 # DSL methods are injected into the global namespace of a command file.
 
 gulp = require 'gulp'
-_ = require 'lodash'
-Promise = require 'bluebird'
 path = require 'path'
-co = require 'co'
-log = require 'log'
-ps = require 'stacker-utils/utils/ps'
-help = require 'help'
-Table = require 'cli-table'
 
-_.isPromise = (obj) ->
-  obj && 'function' == typeof obj.then
-_.isGenerator = (obj) ->
-  obj && 'function' == typeof obj.next && 'function' == typeof obj.throw
+# globals
+_ = require 'stacker/_'
+log = require 'stacker/log'
+help = require 'stacker/help'
+ps = require('stacker/utils').ps
+{Promise, co, isPromise, isGenerator} = require 'stacker/promise'
 
 
 

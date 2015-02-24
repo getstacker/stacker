@@ -1,19 +1,16 @@
 gulp = require 'gulp'
 path = require 'path'
-Promise = require 'bluebird'
-readFile = Promise.promisify require('fs').readFile
-
-# Make files in global dir available to all plugins via `require('module')`
-process.env.NODE_PATH = path.resolve(__dirname, './global') + path.delimiter + process.env.NODE_PATH
-require('module').Module._initPaths()  # Hack
 
 dsl = require('./dsl').dsl
 tasks = require './tasks'
 
 # global
-log = require 'log'
-help = require 'help'
-config = require 'config'
+_ = require 'stacker/_'
+{Promise} = require 'stacker/promise'
+log = require 'stacker/log'
+config = require 'stacker/config'
+
+readFile = Promise.promisify require('fs').readFile
 
 
 run = ->

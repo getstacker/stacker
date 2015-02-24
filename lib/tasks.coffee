@@ -1,11 +1,14 @@
 path = require 'path'
-Promise = require 'bluebird'
+CoffeeScript = require 'coffee-script/lib/coffee-script/coffee-script'
+dsl = require './dsl'
+
+# globals
+_ = require 'stacker/_'
+{Promise} = require 'stacker/promise'
+log = require 'stacker/log'
+
 glob = Promise.promisify require 'glob'
 readFile = Promise.promisify require('fs').readFile
-CoffeeScript = require 'coffee-script/lib/coffee-script/coffee-script'
-_ = require 'lodash'
-dsl = require './dsl'
-log = require 'log'
 
 
 COMMANDS_SRC = '../**/**/tasks/*'
