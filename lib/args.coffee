@@ -1,4 +1,4 @@
-ArgumentParser = require('argparse').ArgumentParser
+ArgumentParser = require('stacker-args').ArgumentParser
 
 # globals
 log = require 'stacker/log'
@@ -16,7 +16,7 @@ initParser = ->
     epilog: 'For additional information, see https://github.com/getstacker/stacker'
     # conflictHandler: [function to resolve option conflicts]
 
-  parser.addArgument ['-c', '--config'],
+  parser.addArgument ['--config'],
     help: 'JSON or YAML stacker config file.'
     metavar: 'CONFIG'
     dest: 'stackerfile'
