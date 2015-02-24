@@ -8,6 +8,7 @@ path = require 'path'
 
 # globals
 _ = require 'stacker/_'
+config = require 'stacker/config'
 log = require 'stacker/log'
 help = require 'stacker/help'
 ps = require('stacker/utils').ps
@@ -99,14 +100,12 @@ YIELDFOR = ['sh', 'sudo']
 
 # Stacker DSL
 DSL =
+  config: config
   log: log
   task: task
   sh: sh
   sudo: sudo
   gulp: gulp
-  src: gulp.src
-  dest: gulp.dest
-  watch: gulp.watch
 
 module.exports =
   yieldfor: YIELDFOR
