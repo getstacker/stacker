@@ -74,16 +74,14 @@ task = (namespace, name, deps, opts, action) ->
     else
       Promise.resolve ret
   gulp.task task_name, deps, (cb) ->
-    new Promise (resolve, reject) ->
-      co( ->
-        try
-          ret = yield action_wrapper cb
-          resolve ret
-        catch err
-          reject err
-      )()
+    co ->
+      try
+        ret = yield action_wrapper cb
+        Promise.resolve ret
+      catch err
+        Promise.reject err
     .catch (err) ->
-      log.error err.message
+      log.error err.message || err
       log.error err.stack
 
 
