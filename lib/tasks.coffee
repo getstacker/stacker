@@ -11,14 +11,12 @@ glob = Promise.promisify require 'glob'
 readFile = Promise.promisify require('fs').readFile
 
 
-COMMANDS_SRC = '../**/**/tasks/*'
 
-
-load = ->
+load = (src) ->
   opts =
     cwd: __dirname
     sync: false
-  glob COMMANDS_SRC, opts
+  glob src, opts
   .then (files) ->
     readTaskFiles files
   .all()
@@ -26,17 +24,18 @@ load = ->
 
 readTaskFiles = (files) ->
   for file in files
-    file = path.resolve __dirname, file
-    readFile file, 'utf8'
-    .then (contents) ->
-      contents = parse contents
-      # log.debug contents
-      CoffeeScript.run contents,
-        filename: file
-    .catch (err) ->
-      log.error "Invalid task file: #{path.relative process.cwd(), file}"
-      log.error "-->  #{err.message}"
-      log.error err.stack
+    do (file) ->
+      file = path.resolve __dirname, file
+      readFile file, 'utf8'
+      .then (contents) ->
+        contents = parse contents
+        # log.debug contents
+        CoffeeScript.run contents,
+          filename: file
+      .catch (err) ->
+        log.error "Invalid task file: #{path.relative process.cwd(), file}"
+        log.error "-->  #{err.message}"
+        log.error err.stack
 
 
 parse = (contents) ->
