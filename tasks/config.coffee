@@ -8,18 +8,24 @@ srcFiles = '**/*.stack'
 #   .pipe debug verbose: true
   # .pipe dest 'dist'
 
+# TODO !!!!!!!
+# 1. Add proper args/help support to task files
+#    - not sure yet of best way to handle this
+# 2. Add debug tasks to show config, dsl, etc. Introspection stuff.
+# 3. Start wiring up stacker.json to load modules, etc.
+
 # Default
 task '', desc: 'Process config files', ->
+  # TODO: ACCESS CONFIG FROM HERE
+  log.debug 'config: ', config
   log.info 'hi!'
-
-  return
-  # ret = sh 'echo "hi from sh" && sleep 1'
-  # console.log '.... between ...'
   ret = sh 'echo "hi [2] from sh" && sleep 1'
-  log.info '!!!!!'
+  console.log 'this should be after echo'
   log.info ret
 
-  src srcFiles
+  return
+
+  gulp.src srcFiles
   .pipe debug verbose: true
 
   # .pipe parseConfigs
@@ -38,6 +44,7 @@ task '', desc: 'Process config files', ->
   # ret = sudo 'echo hi from sudo'
 
   # log.info '<<< end of config'
+
 
 task 'show', desc: 'Output processed config files to stdout', ->
   # src from pipe
