@@ -1,0 +1,30 @@
+# stacker.yaml
+#
+# This file specifies config options for running stacker.
+# It contains the plugins to load, where to load task files,
+# and plugin specific config options.
+
+
+# Plugins are dependencies that register tasks or hook into stacker events.
+# Syntax is similar to npm package.json "dependencies" section but as a
+# sequence of objects rather than a simple hash. This guarantees plugin
+# load order. Plugins must implement the stacker plugin API.
+plugins:
+# - plugin_name: git://url
+# - plugin_name: >= 0.1
+
+# Dependencies are equivalent to npm package.json dependencies.
+# List dependencies that are required in task files.
+# Any npm module can be used.
+# Dependencies and plugins are stored in ./.stacker/node_modules/
+dependencies:
+  shelljs: "^0.3.0"
+
+# Use glob syntax for files: https://github.com/isaacs/node-glob
+tasks:
+  files:
+    # Include dev tasks to aid in stacker release management.
+    - ./tasks/dev/*
+
+logger:
+  level: debug
