@@ -34,15 +34,7 @@ load = (stackerfiles, opts = {}) ->
 
   Promise.any promises
   .spread (filename, contents) ->
-    ext = filename.split('.').pop()
-    switch ext
-      when 'yaml', 'yml'
-        stacker = yaml.safeLoad contents
-      when 'json'
-        stacker = JSON.parse contents
-      else
-        throw "Unsupported stacker config file type: #{ext}"
-    [ path.resolve(filename), stacker ]
+    parse filename, contents
 
   # Catch errors where nothing was resolved by Promise.any
   .catch Promise.AggregateError, (errors) ->
@@ -67,6 +59,21 @@ load = (stackerfiles, opts = {}) ->
       log.error err
     log.error err.stack  if err.stack
     process.exit 1
+
+
+# Parse yaml or json
+parse = (filename, contents) ->
+  [..., ext] = filename.split '.'
+  switch ext
+    when 'yaml', 'yml'
+      stacker = yaml.safeLoad contents
+    when 'json'
+      # Strip comments from json
+      contents = contents.replace(/\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*\/+/g, '').replace(/\/\/.*/g, '')
+      stacker = JSON.parse contents
+    else
+      throw "Unsupported stacker config file type: #{ext}"
+  [ path.resolve(filename), stacker ]
 
 
 module.exports =
