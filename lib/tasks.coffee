@@ -10,32 +10,48 @@ log = require 'stacker/log'
 glob = Promise.promisify require 'glob'
 readFile = Promise.promisify require('fs').readFile
 
+# Cache of loaded task file contents
+taskFiles = []
 
 # Load tasks files that match the src glob
+# Returns array of promises
 load = (src) ->
   glob src,
-    cwd: __dirname
+    cwd: process.cwd()
     sync: false
-  .then readTaskFiles
+    nodir: true
+  .then readFiles
   .all()
 
 
-readTaskFiles = (files) ->
-  for file in files
-    do (file) ->
-      file = path.resolve __dirname, file
-      readFile file, 'utf8'
+readFiles = (files) ->
+  for filename in files
+    do (filename) ->
+      filename = path.resolve __dirname, filename
+      readFile filename, 'utf8'
       .then (contents) ->
-        # Inject dsl into file
-        contents = dsl.inject contents.toString()
-        # log.debug contents
-        CoffeeScript.run contents,
-          filename: file
+        taskFiles.push [filename, contents]
       .catch (err) ->
-        log.error "Invalid task file: #{path.relative process.cwd(), file}"
+        log.error "Invalid task file: #{path.relative process.cwd(), filename}"
         log.error "-->  #{err.message}"
         log.error err.stack
 
 
+parse = ->
+  for params in taskFiles
+    parseTask.apply null, params
+  taskFiles = null
+
+
+parseTask = (filename, contents) ->
+  # Inject dsl into file
+  contents = dsl.inject contents.toString()
+  # log.debug contents
+  CoffeeScript.run contents,
+    filename: filename
+
+
+
 module.exports =
   load: load
+  parse: parse

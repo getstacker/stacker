@@ -1,15 +1,16 @@
 gulp = require 'gulp'
+path = require 'path'
 
 dsl = require('./dsl').dsl
 tasks = require './tasks'
 args = require './args'
 stackerfile = require './stackerfile'
+dependencies = require './dependencies'
+plugins = require './plugins'
 
 # global
 log = require 'stacker/log'
 config = require 'stacker/config'
-
-TASKS_SRC = '../**/**/tasks/*'
 
 run = ->
   stackerfile.load args.getConfig()
@@ -18,10 +19,25 @@ run = ->
     config.stacker = stacker
     # TODO: apply args here
   .then ->
-    # TODO: use tasks src from config.stacker if set
-    tasks.load TASKS_SRC
+    # Check dependencies and load built-in tasks
+    [
+      dependencies.check()
+      tasks.load path.resolve(__dirname, '../tasks/*')
+    ]
+  .all()
   .then ->
-    # Parse args now that task files have populated cli help
+    # Load plugins and project tasks after built-in tasks have loaded
+    [
+      plugins.load()
+      loadProjectTasks()
+    ]
+  .all()
+  .then ->
+    # Parse task files
+    # CLI help gets populated with tasks help
+    tasks.parse()
+  .then ->
+    # Parse args now that cli help is fully populated
     args.parse()
   .then ->
     cmd = args.get 'task'
@@ -30,6 +46,13 @@ run = ->
   .catch (err) ->
     log.error(err.message or err)  unless err == 'NOARGS'
     args.printHelp()
+
+
+loadProjectTasks = ->
+  return []  unless config.stacker.tasks?.files?
+  loaders = for pattern in config.stacker.tasks.files
+    tasks.load path.resolve(process.cwd(), pattern)
+  Promise.all loaders
 
 
 module.exports =
