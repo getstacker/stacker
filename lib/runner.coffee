@@ -17,6 +17,7 @@ run = ->
   .spread (stackerfile, stacker) ->
     config.stackerfile = stackerfile
     config.stacker = stacker
+    log.setLevel stacker.logger?.level or 'info'
     # TODO: apply args here
   .then ->
     # Check dependencies and load built-in tasks
