@@ -5,12 +5,12 @@ task 'debug', ['debug:config', 'debug:dsl'], help: 'Show config and DSL', ->
 
 
 task 'debug:config', help: 'Show looaded stacker config', ->
-  console.log "\n==== STACKERFILE CONFIG ====\n"
+  cli.printHeader cli.color.cyan 'STACKERFILE CONFIG'
   console.log util.inspect config, depth: null, colors: true
   console.log "\n\n"
 
 task 'debug:dsl', help: 'Show DSL', ->
-  console.log ""
+  cli.printHeader cli.color.cyan 'STACKER DSL'
   keys = Object.keys(__stacker__.dsl).sort()
   for k in keys
     v = __stacker__.dsl[k]

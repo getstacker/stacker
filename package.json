@@ -30,6 +30,7 @@
   },
   "homepage": "https://github.com/getstacker/stacker",
   "dependencies": {
+    "chalk": "^1.0.0",
     "cli-table": "^0.3.1",
     "coffee-script": "^1.9.1",
     "glob": "^4.0.6",

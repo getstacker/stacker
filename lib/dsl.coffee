@@ -105,6 +105,37 @@ sudo = (cmd, opts = {}) ->
   ps.spawn 'sudo', ['sh', '-ci', cmd], opts
 
 
+# Print header banner for CLI output
+printHeader = (title, opts = {}) ->
+  _.defaults opts,
+    char: '='
+    maxWidth: 80
+    padding: [2, 1] # newlines before, after
+  cols = process.stdout.columns
+  cols = opts.maxWidth  if cols > opts.maxWidth
+  len = stripAnsi(title).length
+  cnt = Math.floor( (cols - len - 2) / 2 )
+  dashes = new Array(cnt + 1).join opts.char
+  str = "#{dashes} #{title} #{dashes}"
+  str += opts.char  if str.length % 2 is 1
+  padding = [
+    new Array(opts.padding[0]+1).join "\n"
+    new Array(opts.padding[1]+1).join "\n"
+  ]
+  process.stdout.write "#{padding[0]}#{str}\n#{padding[1]}"
+
+
+# Strip ansi control characters
+STRIP_ANSI_REGEX = /(?:(?:\u001b\[)|\u009b)(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])|\u001b[A-M]/g
+stripAnsi = (str) ->
+  str.replace STRIP_ANSI_REGEX, ''
+
+cli =
+  args: cliargs
+  color: require 'chalk'
+  printHeader: printHeader
+  stripAnsi: stripAnsi
+
 # Override gulp.inspect for debug output
 gulp.inspect = (depth) ->
   src: gulp.src
@@ -123,8 +154,7 @@ DSL =
   sh: sh
   sudo: sudo
   gulp: gulp
-  cli:
-    args: cliargs
+  cli: cli
 
 module.exports =
   yieldfor: YIELDFOR
