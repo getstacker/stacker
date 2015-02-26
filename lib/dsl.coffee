@@ -105,6 +105,13 @@ sudo = (cmd, opts = {}) ->
   ps.spawn 'sudo', ['sh', '-ci', cmd], opts
 
 
+# Override gulp.inspect for debug output
+gulp.inspect = (depth) ->
+  src: gulp.src
+  dest: gulp.dest
+  task: gulp.task
+  watch: gulp.watch
+
 # Add yield in front of these methods
 YIELDFOR = ['sh', 'sudo']
 
