@@ -12,21 +12,24 @@ config = require 'stacker/config'
 TASKS_SRC = '../**/**/tasks/*'
 
 run = ->
-  args.parse()
-  stackerfile.load args.get('stackerfile')
-  .then (stacker) ->
+  stackerfile.load args.getConfig()
+  .spread (stackerfile, stacker) ->
+    config.stackerfile = stackerfile
     config.stacker = stacker
     # TODO: apply args here
   .then ->
     # TODO: use tasks src from config.stacker if set
     tasks.load TASKS_SRC
   .then ->
-    cmd = args.get 'command'
+    # Parse args now that task files have populated cli help
+    args.parse()
+  .then ->
+    cmd = args.get 'task'
     throw 'NOARGS'  unless cmd
     gulp.start cmd
   .catch (err) ->
     log.error(err.message or err)  unless err == 'NOARGS'
-    dsl.printHelp()
+    args.printHelp()
 
 
 module.exports =

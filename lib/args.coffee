@@ -1,47 +1,73 @@
-ArgumentParser = require('stacker-args').ArgumentParser
+argparse = require 'stacker-args'
 
 # globals
 log = require 'stacker/log'
 
 args = null
 parser = null
+subparsers = null
+commands = {}
 
-initParser = ->
-  pkg = require '../package.json'
-  parser = new ArgumentParser
-    version: pkg.version
-    prog: pkg.name
-    addHelp: true
-    description: "#{pkg.description} v#{pkg.version}."
-    epilog: 'For additional information, see https://github.com/getstacker/stacker'
-    # conflictHandler: [function to resolve option conflicts]
+CONFIG_ARGS = ['--config']
 
-  parser.addArgument ['--config'],
-    help: 'JSON or YAML stacker config file.'
-    metavar: 'CONFIG'
-    dest: 'stackerfile'
 
-  subparsers = parser.addSubparsers
-    title: 'Commands'
-    dest: 'command'
+pkg = require '../package.json'
+parser = new argparse.ArgumentParser
+  version: pkg.version
+  prog: pkg.name
+  addHelp: true
+  description: "#{pkg.description} v#{pkg.version}."
+  epilog: 'For additional information, see https://github.com/getstacker/stacker'
+  formatterClass: argparse.ArgumentDefaultsHelpFormatter
+  conflictHandler: 'resolve'
 
-  sub_config = subparsers.addParser 'config', addHelp: true, help: 'config stuff'
-  # sub_config.addArgument ['-f', '--foo'],
-  #   action: 'store',
-  #   help: 'foo3 bar3'
+parser.addArgument CONFIG_ARGS,
+  help: 'JSON or YAML stacker config file.'
+  metavar: 'CONFIG'
+  dest: 'config'
+  defaultValue: ''
 
-  # sub_config2 = subparsers.addParser 'config:show', addHelp: true, help: 'show config stuff'
-  # sub_config2.addArgument ['-f', '--foo'],
-  #   action: 'store',
-  #   help: 'foo3 bar3'
+parser.addArgument ['--env'],
+  help: 'Set environment ENV var'
+  metavar: 'ENV'
+  dest: 'env'
+  defaultValue: 'development'
+
+subparsers = parser.addSubparsers
+  title: 'Task commands'
+  dest: 'task'
+  description: 'Commands are defined in task files. Task specific help: stacker COMMAND -h'
+  metavar: 'COMMAND'
+  help: ''
+
+
+
+# Manage subparsers
+command = (cmd, opts = {}) ->
+  return commands[cmd]  if commands[cmd]?
+  opts.addHelp = opts.help?
+  commands[cmd] = subparsers.addParser cmd, opts
+
+
+# Return --config arg if present
+getConfig = ->
+  configparser = new argparse.ArgumentParser
+    addHelp: false
+  configparser.addArgument CONFIG_ARGS,
+    dest: 'config'
+  configparser.parseKnownArgs()[0]['config']
+
 
 parse = ->
   args = parser.parseArgs()
 
 
-initParser()
 module.exports =
   parse: parse
-  printHelp: parser.printHelp
+  getConfig: getConfig
+  printHelp: parser.printHelp.bind(parser)
+  formatHelp: parser.formatHelp.bind(parser)
+  command: command
+  addArgument: parser.addArgument.bind(parser)
   get: (opt) ->
     if opt then args[opt] else args

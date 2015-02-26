@@ -1,23 +1,25 @@
 lazypipe = require 'lazypipe'
 debug = require 'gulp-debug'
 
-namespace 'config'
 srcFiles = '**/*.stack'
 
 # parseConfigs = lazypipe()
 #   .pipe debug verbose: true
   # .pipe dest 'dist'
 
-# TODO !!!!!!!
-# 1. Add proper args/help support to task files
-#    - not sure yet of best way to handle this
-# 2. Add debug tasks to show config, dsl, etc. Introspection stuff.
-# 3. Start wiring up stacker.json to load modules, etc.
 
-# Default
-task '', desc: 'Process config files', ->
+# cli.args.command('config', help: 'Some help text for config cmd')
+#   .addArgument ['-f', '--foo'],
+#     help: 'foo3 bar3'
+#     dest: 'foo'
+#   .addArgument ['-e', '--env'],
+#     help: 'set environment'
+#     dest: 'environment'   # name of arg
+
+
+task 'config', help: 'Test config file', ->
   # TODO: ACCESS CONFIG FROM HERE
-  log.debug 'config: ', config
+  #log.debug 'config: ', config
   log.info 'hi!'
   ret = sh 'echo "hi [2] from sh" && sleep 1'
   console.log 'this should be after echo'
@@ -46,12 +48,11 @@ task '', desc: 'Process config files', ->
   # log.info '<<< end of config'
 
 
-task 'show', desc: 'Output processed config files to stdout', ->
+task 'config:show', desc: 'Output processed config files to stdout', ->
   # src from pipe
   # output to stdout
   console.log 'hello from config:show'
 
-task 'debug', desc: 'Show debug output', ->
 
 
 

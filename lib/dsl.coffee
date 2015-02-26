@@ -5,12 +5,12 @@
 
 gulp = require 'gulp'
 path = require 'path'
+cliargs = require './args'
 
 # globals
 _ = require 'stacker/_'
 config = require 'stacker/config'
 log = require 'stacker/log'
-help = require 'stacker/help'
 ps = require('stacker/utils').ps
 {Promise, co, isPromise, isGenerator} = require 'stacker/promise'
 
@@ -19,61 +19,71 @@ ps = require('stacker/utils').ps
 # Get task function arguments
 #
 # Examples:
-#   getTaskArgs 'namespace', 'name', ['dep1', 'dep2'], desc: "help", ->
-#   getTaskArgs 'namespace', 'name', desc: "help", ->
-#   getTaskArgs 'namespace', 'name', ['dep1', 'dep2'], ->
-#   getTaskArgs 'namespace', 'name', ->
-getTaskArgs = (namespace, name, deps, opts, action) ->
+#   getTaskArgs 'name', ['dep1', 'dep2'], desc: "help", ->
+#   getTaskArgs 'name', desc: "help", ->
+#   getTaskArgs 'name', ['dep1', 'dep2'], ->
+#   getTaskArgs 'name', ->
+getTaskArgs = (name, deps, opts, action) ->
   args = Array.prototype.slice.call arguments, 0
   unless _.isArray deps
     deps = []
-    deps = args[3]  if _.isArray args[3]
+    deps = args[2]  if _.isArray args[2]
   unless typeof opts == 'object'
     opts = {}
-    opts = args[2]  if _.isObject(args[2]) and not _.isArray(args[2]) and not _.isFunction(args[2])
+    opts = args[1]  if _.isObject(args[1]) and not _.isArray(args[1]) and not _.isFunction(args[1])
   unless _.isFunction action
-    if _.isFunction args[3]
-      action = args[3]
-    else if _.isFunction args[2]
+    if _.isFunction args[2]
       action = args[2]
-  task_name = if namespace and name
-    "#{namespace}:#{name}"
-  else if name
-    name
-  else if namespace
-    namespace
-  else
-    throw 'Invalid task name: namespace and task name cannot both be empty'
-  [task_name, deps, opts, action]
+    else if _.isFunction args[1]
+      action = args[1]
+  namespace = name.split(':')[0]
+  [namespace, name, deps, opts, action]
+
+
+# Inject DSL into a file
+inject = (contents) ->
+  # Add `yield` in front of async dsl methods
+  yieldfor = YIELDFOR.join '|'
+  re = new RegExp "^([^#]*?\\s+)(#{yieldfor})\\s(.+?)$", 'mg'
+  contents = contents.replace re, '$1yield $2 $3'
+
+  methods = for k,v of DSL
+    "#{k} = __stacker__.dsl.#{k}"
+
+  [
+    "__stacker__ = {dsl: require('#{__filename}').dsl}"
+    methods.join "\n"
+    "\n"
+    contents
+  ].join "\n"
+
 
 
 # Add a task.
 #
-# Omit the namespace param when calling task as it's automatically injected by
-# a task wrapper. Order of params is flexible. See getTaskArgs.
+# Order of params is flexible. See getTaskArgs.
 #
 # In order for task dependencies to complete before a task is run, the dependencies
 # need to provide async hints. This can happen by returning a stream or promise or
 # calling the callback function passed into the action.
 #
-# Task is a wrapper around
+# Task is a wrapper around gulp.task which is an alias of
 # [Orchestrator.add](https://github.com/orchestrator/orchestrator#orchestratoraddname-deps-function)
 #
-# @param namespace  Automatically added. See runner.inject
 # @param name       Name of task
 # @param deps       Array of dependent tasks to be run prior to running action
 # @param opts       Options object
 # @param action     Task function
-task = (namespace, name, deps, opts, action) ->
-  [task_name, deps, opts, action] = getTaskArgs.apply null, arguments
-  help.setHelp task_name, deps, opts  unless help.getHelp task_name
+task = (name, deps, opts, action) ->
+  [namespace, name, deps, opts, action] = getTaskArgs.apply null, arguments
+  cliargs.command name, opts
   action_wrapper = (cb) ->
     ret = action cb
     if _.isArray(ret) or isPromise(ret) or isGenerator(ret)
       ret
     else
       Promise.resolve ret
-  gulp.task task_name, deps, (cb) ->
+  gulp.task name, deps, (cb) ->
     co ->
       try
         ret = yield action_wrapper cb
@@ -106,7 +116,10 @@ DSL =
   sh: sh
   sudo: sudo
   gulp: gulp
+  cli:
+    args: cliargs
 
 module.exports =
   yieldfor: YIELDFOR
   dsl: DSL
+  inject: inject

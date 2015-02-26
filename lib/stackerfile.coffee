@@ -18,7 +18,10 @@ STACKERFILES = [ 'stacker.json', 'stacker.yaml', 'stacker.yml' ]
 
 # Load the first matching file in stackerfiles.
 # Order is not guaranteed. The first file to load wins.
-load = (stackerfiles) ->
+load = (stackerfiles, opts = {}) ->
+  _.defaults opts,
+    warnings: true
+
   # Use the first stacker.* file found
   stackerfiles ?= STACKERFILES
   stackerfiles = [ stackerfiles ]  unless _.isArray stackerfiles
@@ -39,7 +42,7 @@ load = (stackerfiles) ->
         stacker = JSON.parse contents
       else
         throw "Unsupported stacker config file type: #{ext}"
-    stacker
+    [ path.resolve(filename), stacker ]
 
   # Catch errors where nothing was resolved by Promise.any
   .catch Promise.AggregateError, (errors) ->
@@ -49,7 +52,9 @@ load = (stackerfiles) ->
       else
         log.error err
         process.exit 1
-    log.warn 'No stacker config file found: %s', paths.join(', ')
+    if opts.warnings
+      log.warn 'No stacker config file found: %s', paths.join(', ')
+    [ null, {} ]
 
   # Catch file processing errors
   .catch (err) ->
