@@ -23,7 +23,7 @@ load = (stackerfiles, opts = {}) ->
     warnings: true
 
   # Use the first stacker.* file found
-  stackerfiles ?= STACKERFILES
+  stackerfiles ||= STACKERFILES
   stackerfiles = [ stackerfiles ]  unless _.isArray stackerfiles
 
   promises = for filename in stackerfiles
