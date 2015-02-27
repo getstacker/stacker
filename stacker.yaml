@@ -20,11 +20,13 @@ plugins:
 dependencies:
   shelljs: "^0.3.0"
 
+dir: ".stacker"
+
 # Use glob syntax for files: https://github.com/isaacs/node-glob
 tasks:
-  files:
-    # Include dev tasks to aid in stacker release management.
-    - ./tasks/dev/*
+  # Include dev tasks to aid in stacker release management.
+  - ./tasks/dev/*
 
 logger:
   level: debug
+
