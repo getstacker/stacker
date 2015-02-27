@@ -13,12 +13,13 @@ log = require 'stacker/log'
 config = require 'stacker/config'
 
 run = ->
-  stackerfile.load args.getConfig()
+  known = args.parseKnown()
+  stackerfile.load known['config']
   .spread (stackerfile, stacker) ->
     config.stackerfile = stackerfile
     config.stacker = stacker
-    log.setLevel stacker.logger?.level or 'info'
-    # TODO: apply args here
+    args.setConfig config.stacker
+    log.setLevel config.stacker.logger?.level or 'info'
   .then ->
     # Check dependencies and load built-in tasks
     [
@@ -40,18 +41,18 @@ run = ->
   .then ->
     # Parse args now that cli help is fully populated
     args.parse()
-  .then ->
-    cmd = args.get 'task'
-    throw 'NOARGS'  unless cmd
-    gulp.start cmd
+    # Run task
+    gulp.start args.get('task')
   .catch (err) ->
-    log.error(err.message or err)  unless err == 'NOARGS'
+    unless err == 'NOARGS'
+      log.error err.message or err
+      log.error err.stack
     args.printHelp()
 
 
 loadProjectTasks = ->
-  return []  unless config.stacker.tasks?.files?
-  loaders = for pattern in config.stacker.tasks.files
+  return []  unless config.stacker.tasks
+  loaders = for pattern in config.stacker.tasks
     tasks.load path.resolve(process.cwd(), pattern)
   Promise.all loaders
 
