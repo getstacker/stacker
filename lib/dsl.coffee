@@ -6,6 +6,7 @@
 gulp = require 'gulp'
 path = require 'path'
 cliargs = require './args'
+{prettyPrintStackTrace} = require './stacktrace'
 
 # globals
 _ = require 'stacker/_'
@@ -13,7 +14,6 @@ config = require 'stacker/config'
 log = require 'stacker/log'
 ps = require('stacker/utils').ps
 {Promise, co, isPromise, isGenerator} = require 'stacker/promise'
-
 
 
 # Get task function arguments
@@ -44,19 +44,30 @@ getTaskArgs = (name, deps, opts, action) ->
 inject = (contents) ->
   # Add `yield` in front of async dsl methods
   yieldfor = YIELDFOR.join '|'
-  re = new RegExp "^([^#]*?\\s+)(#{yieldfor})\\s(.+?)$", 'mg'
-  contents = contents.replace re, '$1yield $2 $3'
+  re = ///^
+    # Match if not a comment
+    ([^\#]*?\s+)
+    (#{yieldfor})
+    \s
+    (.+?)
+  $///mg
+  contents.replace re, '$1yield $2 $3'
 
-  methods = for k,v of DSL
-    "#{k} = __stacker__.dsl.#{k}"
+  # OLD INJECTION METHOD
+  # [
+  #   "__stacker__ = {dsl: require('#{__filename}').dsl}"
+  #   methods().join '\n'
+  #   contents
+  # ].join '\n'
 
-  [
-    "__stacker__ = {dsl: require('#{__filename}').dsl}"
-    methods.join "\n"
-    "\n"
-    contents
-  ].join "\n"
 
+# OLD INJECTION METHOD
+# Returns array of DSL methods strings for injecting in a file
+# cache = {}
+# methods = ->
+#   cache.methods ?=
+#     "#{k} = __stacker__.dsl.#{k}" for k,v of DSL when k[0] is not '_'
+#   cache.methods
 
 
 # Add a task.
@@ -83,6 +94,7 @@ task = (name, deps, opts, action) ->
       ret
     else
       Promise.resolve ret
+  sandbox = @
   gulp.task name, deps, (cb) ->
     co ->
       try
@@ -91,8 +103,13 @@ task = (name, deps, opts, action) ->
       catch err
         Promise.reject err
     .catch (err) ->
+      err = prettyPrintStackTrace err,
+        filename: sandbox.__filename
+        source: sandbox.__source
+        sourceMap: sandbox.__sourceMap
+        clearStack: false
       log.error err.message or err
-      log.error err.stack
+      log.error err.stack  if err.stack
 
 
 # Run a shell command
