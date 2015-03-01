@@ -44,10 +44,11 @@ run = ->
     # Run task
     gulp.start args.get('task')
   .catch (err) ->
-    unless err == 'NOARGS'
+    unless err is 'NOARGS' # TODO: write tests for NOARGS, not sure why this is here
       log.error err.message or err
-      log.error err.stack
-    args.printHelp()
+      log.error err.stack  if err.stack
+    unless err.code is 'TASKERROR'
+      args.printHelp()
 
 
 loadProjectTasks = ->
