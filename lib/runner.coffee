@@ -13,24 +13,18 @@ log = require 'stacker/log'
 config = require 'stacker/config'
 
 run = ->
-  known = args.parseKnown()
-  stackerfile.load known['config']
+  stackerfile.load args.parseKnown()['config']
   .spread (stackerfile, stacker) ->
     config.stackerfile = stackerfile
     config.stacker = stacker
     args.setConfig config.stacker
     log.setLevel config.stacker.logger?.level or 'info'
   .then ->
-    # Check dependencies and load built-in tasks
-    [
-      dependencies.check()
-      tasks.load path.resolve(__dirname, '../tasks/*')
-    ]
-  .all()
-  .then ->
-    # Load plugins and project tasks after built-in tasks have loaded
+    # Load plugins and task files
+    # TODO: add caching here
     [
       plugins.load()
+      tasks.load path.resolve(__dirname, '../tasks/*')
       loadProjectTasks()
     ]
   .all()
