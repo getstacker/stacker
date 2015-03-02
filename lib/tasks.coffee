@@ -50,8 +50,22 @@ parseTask = (filename, contents) ->
   code = CoffeeScript.compile source,
     filename: filename
     sourceMap: true
-    bare: false # Source maps don't work unless bare is false for some reason
+    # Source maps are wrong unless bare is false for some reason
+    bare: false
+  try
+    vm.runInNewContext code.js, getSandbox(filename, source, code.sourceMap),
+      filename: filename
+      displayErrors: false
+  catch err
+    err.code = 'TASKERROR'
+    throw prettyPrintStackTrace err,
+      filename: filename
+      source: source
+      sourceMap: code.sourceMap
+      clearStack: true # TODO: set clearStack based on log level debug
 
+
+getSandbox = (filename, source, sourceMap) ->
   sandbox =
     Buffer: Buffer
     Error: Error
@@ -63,29 +77,12 @@ parseTask = (filename, contents) ->
     __filename: filename
     __dirname: path.dirname filename
     __source: source
-    __sourceMap: code.sourceMap
+    __sourceMap: sourceMap
     __dsl: dsl.dsl
-
   sandbox.global = sandbox.root = sandbox.GLOBAL = sandbox
-
   for k,v of dsl.dsl
-    sandbox[k] = if typeof v is 'function'
-      v.bind sandbox
-    else
-      v
-
-  try
-    vm.runInNewContext code.js, sandbox,
-      filename: filename
-      displayErrors: false
-  catch err
-    err.code = 'TASKERROR'
-    throw prettyPrintStackTrace err,
-      filename: filename
-      source: source
-      sourceMap: code.sourceMap
-      clearStack: false # TODO: set clearStack based on log level debug
-
+    sandbox[k] = if _.isFunction(v) then v.bind(sandbox) else v
+  sandbox
 
 
 module.exports =

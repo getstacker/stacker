@@ -107,7 +107,7 @@ task = (name, deps, opts, action) ->
         filename: sandbox.__filename
         source: sandbox.__source
         sourceMap: sandbox.__sourceMap
-        clearStack: false
+        clearStack: true # TODO: set to false if debug logging level
       log.error err.message or err
       log.error err.stack  if err.stack
 
