@@ -16,17 +16,32 @@ prettyPrintStackTrace = (err, opts = {}) ->
     clearStack: true
   {filename, source, sourceMap} = opts
 
-  return err  unless filename and source
+  return err  unless filename and source and err.stack?
 
   stk = err.stack.toString()
   matches = stk.match ///#{escapeRegExp filename}:(\d+):(\d+)///
   return err  unless matches
 
-  errline = matches[1]
-  errcol = matches[2]
+  # TODO: make isSource detection more robust by looking up the filename in
+  #   list of tasks to ensure filename is actually a task
 
-  if sourceMap
-    [errline, errcol] = sourceMap.sourceLocation [errline - 1, errcol - 1]
+  # Assume errline refers to original source if filename is not the last file in the stack
+  isSource = not stk.match(///^.*\n[^\n]+#{escapeRegExp filename}///)?
+
+  errline = parseInt matches[1]
+  errcol = parseInt matches[2]
+
+  # Only do a sourceMap look up if the error was thrown from a task file.
+  # This works because the task files are custom compiled where everything else
+  # is compiled by normal CoffeeScript methods and is already correct in the stack.
+  if not isSource
+    # Error refers to compiled JS code; get cooresponding source
+    if sourceMap?
+      [errline, errcol] = sourceMap.sourceLocation [errline - 1, errcol - 1]
+  else
+    # Error refers to source; adjust line & col so proceeding math works
+    errline -= 1
+    errcol -= 1
   return err  unless errline
 
   start = Math.max errline - opts.context, 0
