@@ -1,8 +1,8 @@
-vm = require 'vm'
 path = require 'path'
 CoffeeScript = require 'coffee-script/lib/coffee-script/coffee-script'
 dsl = require './dsl'
 {prettyPrintStackTrace} = require './stacktrace'
+Sandbox = require './Sandbox'
 
 # globals
 _ = require 'stacker/_'
@@ -14,6 +14,7 @@ readFile = Promise.promisify require('fs').readFile
 
 # Cache of loaded task file contents
 taskFiles = []
+
 
 # Load tasks files that match the src glob
 # Returns array of promises
@@ -53,9 +54,13 @@ parseTask = (filename, contents) ->
     # Source maps are wrong unless bare is false for some reason
     bare: false
   try
-    vm.runInNewContext code.js, getSandbox(filename, source, code.sourceMap),
+    vm = new Sandbox
       filename: filename
-      displayErrors: false
+      code: code.js
+      source: source
+      sourceMap: code.sourceMap
+      dsl: dsl.dsl
+    vm.run()
   catch err
     err.code = 'TASKERROR'
     throw prettyPrintStackTrace err,
@@ -63,26 +68,6 @@ parseTask = (filename, contents) ->
       source: source
       sourceMap: code.sourceMap
       clearStack: true # TODO: set clearStack based on log level debug
-
-
-getSandbox = (filename, source, sourceMap) ->
-  sandbox =
-    Buffer: Buffer
-    Error: Error
-    console: console
-    require: require
-    process: process
-    setImmediate: setImmediate
-    clearImmediate: clearImmediate
-    __filename: filename
-    __dirname: path.dirname filename
-    __source: source
-    __sourceMap: sourceMap
-    __dsl: dsl.dsl
-  sandbox.global = sandbox.root = sandbox.GLOBAL = sandbox
-  for k,v of dsl.dsl
-    sandbox[k] = if _.isFunction(v) then v.bind(sandbox) else v
-  sandbox
 
 
 module.exports =
