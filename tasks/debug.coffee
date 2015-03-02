@@ -1,19 +1,33 @@
 util = require 'util'
+_ = require 'stacker/_'
 
 
-task 'debug', ['debug:config', 'debug:dsl'], help: 'Show config and DSL', ->
+inspect = (key, val, opts = {}) ->
+  _.defaults opts,
+    depth: 0
+    colors: true
+  console.log "#{key}: #{util.inspect val, opts}\n"
+
+
+# task 'debug', ['debug:config', 'debug:dsl'], help: 'Show config and DSL', ->
+  # DO NOTHING
 
 
 task 'debug:config', help: 'Show looaded stacker config', ->
-  cli.printHeader cli.color.cyan 'STACKERFILE CONFIG'
-  console.log util.inspect config, depth: null, colors: true
-  console.log "\n\n"
+  cli.printHeader cli.color.cyan('STACKERFILE CONFIG')
+  inspect 'config', config, depth: 4, colors: true
 
-task 'debug:dsl', help: 'Show DSL', ->
-  cli.printHeader cli.color.cyan 'STACKER DSL'
-  keys = Object.keys(__stacker__.dsl).sort()
-  for k in keys
-    v = __stacker__.dsl[k]
-    n = if typeof v == 'object' then "\n" else ''
-    console.log "#{k}: #{n}#{util.inspect v, depth: 0, colors: true}\n"
+
+task 'debug:dsl', help: 'Show DSL functions available in task files', ->
+  dslkeys = Object.keys(__dsl).sort()
+
+  cli.printHeader cli.color.cyan('SANDBOX GLOBALS')
+  gkeys = Object.keys(global).sort()
+  for k in gkeys
+    continue  if dslkeys.indexOf(k) > -1 or k.toLowerCase() is 'global' or k is 'root'
+    inspect k, global[k], depth: -1
+
+  cli.printHeader cli.color.cyan('STACKER DSL')
+  for k in dslkeys
+    inspect k, __dsl[k]
 
