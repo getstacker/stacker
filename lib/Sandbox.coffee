@@ -62,8 +62,8 @@ class Sandbox
     sandbox.module  = _module  = new Module @opts.modulename
     sandbox.require = _require = (path) ->  Module._load path, _module, true
     _module.filename = sandbox.__filename
-    # TODO: debug and uncomment next line; currently throws error about strict mode
-    #_require[r] = require[r] for r in Object.getOwnPropertyNames require when r isnt 'paths'
+    skip = ['paths', 'callee', 'caller', 'arguments']
+    _require[r] = require[r] for r in Object.getOwnPropertyNames require when not _.contains(skip, r)
     # use the same hack node currently uses for their own REPL
     _require.paths = _module.paths = @modulePaths()
     _require.resolve = (request) -> Module._resolveFilename request, _module
