@@ -108,7 +108,6 @@ task = (name, deps, opts, action) ->
         source: sandbox.__source
         # Do not use sourceMap since stack is already correct if we've made it this far
         sourceMap: false
-        clearStack: true # TODO: set to false if debug logging level
       log.error err.message or err
       log.error err.stack  if err.stack
 

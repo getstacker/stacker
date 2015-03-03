@@ -44,6 +44,12 @@ createParser = (opts = {}) ->
     dest: 'dir'
     defaultValue: '.stacker'
 
+  newParser.addArgument ['--debug'],
+    help: 'Enable debug output'
+    dest: 'debug'
+    action: 'storeTrue'
+    defaultValue: false
+
   if opts.subcommands
     subparsers = newParser.addSubparsers
       title: 'Task commands'
@@ -71,6 +77,9 @@ parseKnown = ->
 setConfig = (conf) ->
   conf.environment = args['environment']
   conf.dir = args['dir']
+  conf.debug = args['debug']
+  conf.logger ?= {}
+  conf.logger.level = 'debug'  if conf.debug
   # Do not set args['config']; it is set in runner
   conf
 

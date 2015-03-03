@@ -5,6 +5,7 @@ path = require 'path'
 # globals
 _ = require 'stacker/_'
 log = require 'stacker/log'
+config = require 'stacker/config'
 {escapeRegExp} = require('stacker/utils').string
 
 
@@ -13,7 +14,7 @@ log = require 'stacker/log'
 prettyPrintStackTrace = (err, opts = {}) ->
   _.defaults opts,
     context: 3
-    clearStack: true
+    clearStack: not (config.stacker.debug or log.willOutput 'debug')
 
   {filename, source, sourceMap} = opts
   return err  unless filename and source and err.stack?

@@ -71,7 +71,6 @@ parseTask = (filename, contents) ->
       source: source
       # Use sourceMap since errors occur before prepareStackTrace is available
       sourceMap: code.sourceMap
-      clearStack: true # TODO: set clearStack based on log level debug
 
 
 module.exports =
