@@ -71,7 +71,7 @@ inject = (contents) ->
 
 
 assert = (test, err) ->
-  err = new Error  unless err instanceof Error
+  err = new Error(err)  unless err instanceof Error
   throw err  unless test
 
 # Add a task.
