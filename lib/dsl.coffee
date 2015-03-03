@@ -70,10 +70,6 @@ inject = (contents) ->
 #   cache.methods
 
 
-assert = (test, err) ->
-  err = new Error(err)  unless err instanceof Error
-  throw err  unless test
-
 # Add a task.
 #
 # Order of params is flexible. See getTaskArgs.
@@ -177,7 +173,6 @@ DSL =
   sudo: sudo
   gulp: gulp
   cli: cli
-  assert: assert
 
 module.exports =
   yieldfor: YIELDFOR

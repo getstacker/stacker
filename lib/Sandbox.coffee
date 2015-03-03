@@ -51,6 +51,7 @@ class Sandbox
       process: process
       setImmediate: setImmediate
       clearImmediate: clearImmediate
+      assert: require 'assert'
       __dsl: @dsl
       __prepareStackTrace: Error.prepareStackTrace
 
