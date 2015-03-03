@@ -2,7 +2,7 @@ path = require 'path'
 CoffeeScript = require 'coffee-script/lib/coffee-script/coffee-script'
 dsl = require './dsl'
 {prettyPrintStackTrace} = require './stacktrace'
-Sandbox = require './Sandbox'
+Sandbox = require './sandbox'
 
 # globals
 _ = require 'stacker/_'

@@ -3,11 +3,13 @@
 path = require 'path'
 vm = require 'vm'
 Module = require 'module'
+SandboxModule = require './sandbox-module'
 
 # globals
 _ = require 'stacker/_'
 log = require 'stacker/log'
 config = require 'stacker/config'
+
 
 
 class Sandbox
@@ -33,7 +35,8 @@ class Sandbox
     sandbox.__source = @source
     sandbox.__sourceMap = @sourceMap
 
-    @setModule sandbox
+    @setSandboxModule sandbox
+    #@setModule sandbox
     @sandbox = sandbox
 
 
@@ -63,6 +66,9 @@ class Sandbox
     sandbox
 
 
+  # setModule is a hack.
+  # Modules loaded in the VM that modify global or built-in objects will
+  # pollute this context. TODO: get SandboxModule working.
   setModule: (sandbox) ->
     # Set modules loading paths
     # https://github.com/jashkenas/coffeescript/blob/533ad8/src/coffee-script.coffee#L154-L161
@@ -76,8 +82,36 @@ class Sandbox
     _require.resolve = (request) -> Module._resolveFilename request, _module
     sandbox
 
+  ###
+  SandboxModule is experimental.
+  The goal with SandboxModule is to share global scope so loaded modules
+  can modify built-in objects (like String) or add to the globals.
+  ###
+  setSandboxModule: (sandbox) ->
+    # TODO: create helper method on SandboxModule
+    #   This code is duplicated in SandboxModule
+
+    sandbox.module  = _module  = new SandboxModule @opts.modulename
+    _module.filename = sandbox.__filename
+
+    sandbox.require = _require = (path) ->
+      log.debug 'sandbox.require: ', path
+      SandboxModule._load path, _module, true, sandbox
+    _require.resolve = (request) ->
+      SandboxModule._resolveFilename request, _module
+    _require.main = process.mainModule
+    _require.extensions = SandboxModule._extensions
+    _require.cache = SandboxModule._cache
+
+    # use the same hack node currently uses for their own REPL
+    _require.paths = _module.paths = @modulePaths()
+    log.warn '_require.paths', _require.paths
+
+    sandbox
+
 
   modulePaths: ->
+    # Module._nodeModulePaths process.cwd()
     _.compact [
       # Stacker install dir; built-in modules
       path.resolve __dirname, '../node_modules'
