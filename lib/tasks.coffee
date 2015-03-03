@@ -63,9 +63,13 @@ parseTask = (filename, contents) ->
     vm.run()
   catch err
     err.code = 'TASKERROR'
+    # Errors occur here when task files fail to initialize properly.
+    # This typically happens when a DSL methods are missing.
+    # See dsl.task for catching task runtime errors.
     throw prettyPrintStackTrace err,
       filename: filename
       source: source
+      # Use sourceMap since errors occur before prepareStackTrace is available
       sourceMap: code.sourceMap
       clearStack: true # TODO: set clearStack based on log level debug
 

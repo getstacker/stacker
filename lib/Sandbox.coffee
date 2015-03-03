@@ -11,6 +11,12 @@ config = require 'stacker/config'
 
 
 class Sandbox
+  # JavaScript to tack on to the end of all code before running in VM.
+  # Code is appended rather than prepended so that source maps are stil accurate.
+  codeAddons: """
+  ; Error.prepareStackTrace = __prepareStackTrace;
+  """
+
   constructor: (opts = {}) ->
     {@filename, @code, @source, @sourceMap, @sandbox, @dsl} = opts
     @opts = opts
@@ -35,18 +41,18 @@ class Sandbox
     _.defaults opts,
       filename: @filename
       displayErrors: false
-    vm.runInNewContext @code, @sandbox, opts
+    vm.runInNewContext @code + @codeAddons, @sandbox, opts
 
 
   newSandbox: (filename, source, sourceMap) ->
     sandbox =
       Buffer: Buffer
-      Error: Error
       console: console
       process: process
       setImmediate: setImmediate
       clearImmediate: clearImmediate
       __dsl: @dsl
+      __prepareStackTrace: Error.prepareStackTrace
 
     sandbox.global = sandbox.root = sandbox.GLOBAL = sandbox
 
