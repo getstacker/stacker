@@ -13,8 +13,8 @@ plugins:
 # - plugin_name: git://url
 # - plugin_name: >= 0.1
 
-# Dependencies are equivalent to npm package.json dependencies.
-# List dependencies that are required in task files.
+# Dependencies are npm package.json dependencies.
+# List any dependencies here that are required in task files.
 # Any npm module can be used.
 # Dependencies and plugins are stored in ./.stacker/node_modules/
 dependencies:

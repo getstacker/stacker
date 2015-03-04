@@ -66,21 +66,24 @@ class Sandbox
     sandbox
 
 
-  # setModule is a hack.
-  # Modules loaded in the VM that modify global or built-in objects will
-  # pollute this context. TODO: get SandboxModule working.
-  setModule: (sandbox) ->
-    # Set modules loading paths
-    # https://github.com/jashkenas/coffeescript/blob/533ad8/src/coffee-script.coffee#L154-L161
-    sandbox.module  = _module  = new Module @opts.modulename
-    sandbox.require = _require = (path) ->  Module._load path, _module, true
-    _module.filename = sandbox.__filename
-    skip = ['paths', 'callee', 'caller', 'arguments']
-    _require[r] = require[r] for r in Object.getOwnPropertyNames require when not _.contains(skip, r)
-    # use the same hack node currently uses for their own REPL
-    _require.paths = _module.paths = @modulePaths()
-    _require.resolve = (request) -> Module._resolveFilename request, _module
-    sandbox
+  ###
+  setModule is a hack.
+  Modules loaded in the VM that modify global or built-in objects will
+  pollute this context. TODO: get SandboxModule working.
+  ###
+  # setModule: (sandbox) ->
+  #   # Set modules loading paths
+  #   # https://github.com/jashkenas/coffeescript/blob/533ad8/src/coffee-script.coffee#L154-L161
+  #   sandbox.module  = _module  = new Module @opts.modulename
+  #   sandbox.require = _require = (path) ->  Module._load path, _module, true
+  #   _module.filename = sandbox.__filename
+  #   skip = ['paths', 'callee', 'caller', 'arguments']
+  #   _require[r] = require[r] for r in Object.getOwnPropertyNames require when not _.contains(skip, r)
+  #   # use the same hack node currently uses for their own REPL
+  #   _require.paths = _module.paths = @modulePaths()
+  #   _require.resolve = (request) -> Module._resolveFilename request, _module
+  #   sandbox
+
 
   ###
   SandboxModule is experimental.

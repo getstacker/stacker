@@ -5,8 +5,6 @@ dsl = require('./dsl').dsl
 tasks = require './tasks'
 args = require './args'
 stackerfile = require './stackerfile'
-dependencies = require './dependencies'
-plugins = require './plugins'
 
 # global
 log = require 'stacker/log'
@@ -23,7 +21,7 @@ run = ->
     # Load plugins and task files
     # TODO: add caching here
     [
-      plugins.load()
+      # plugins.load()
       tasks.load path.resolve(__dirname, '../tasks/*')
       loadProjectTasks()
     ]
@@ -33,17 +31,17 @@ run = ->
     # CLI help gets populated with tasks help
     tasks.parse()
   .then ->
-    # Parse args now that cli help is fully populated
+    # Parse args now that cli help is populated from task files
     args.parse()
     # Run task
     gulp.start args.get('task')
 
-  .then ->
-    # Debug SandboxModule require
-    # Make sure things have not bled into this global context
-    assert = require 'assert'
-    assert !global.testtest, 'GLOBAL.TESTTEST SHOULD NOT BE DEFINED HERE'
-    assert !String::to, 'STRING PROTOTYPE SHOULD NOT BE SET HERE'
+  # .then ->
+  #   # Debug SandboxModule require
+  #   # Make sure things have not bled into this global context
+  #   assert = require 'assert'
+  #   assert !global.testtest, 'GLOBAL.TESTTEST SHOULD NOT BE DEFINED HERE'
+  #   assert !String::to, 'STRING PROTOTYPE SHOULD NOT BE SET HERE'
 
   .catch (err) ->
     unless err is 'NOARGS' # TODO: write tests for NOARGS, not sure why this is here

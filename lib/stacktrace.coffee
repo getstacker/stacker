@@ -28,8 +28,6 @@ prettyPrintStackTrace = (err, opts = {}) ->
   errcol = parseInt matches[4]
   return err  unless errline
 
-  # Lookup in sourceMap
-  # This is not currently needed since error stack should already be correct
   if sourceMap
     [errline, errcol] = sourceMap.sourceLocation [errline - 1, errcol - 1]
     errline += 1

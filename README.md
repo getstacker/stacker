@@ -94,6 +94,55 @@ stacker link my-new-plugin
 - https://github.com/gulpjs/gulp/tree/master/docs/recipes
 - https://github.com/osscafe/gulp-cheatsheet
 
+# DESIGN GOALS
+
+- devops focused task runner
+- simple but expressive DSL for writing scripts
+  - better than bash
+  - all the power of node and npm modules
+  - highly testable
+- pipes and promises
+- not a replacement for ansible or salt
+  - much smaller in scope
+  - can run ansible or salt commands
+- primarily acts as a developer api
+  - wraps other programs
+  - simplifies chaining a bunch of programs together
+
+# CORE CONCEPTS
+
+### Context
+
+Stacker runs tasks in VMs and containers. For security reasons, it does not
+run anything on the host by default except for core stacker CLI commands.
+
+Context is defined as a colon separated string: "VM:CONTAINER".
+
+```
+"*:*" means run in all VMs and all containers
+"-:*" means run in all containers on all VMs but do not run in the VM itself
+"*:-" means run in all VMs but not in containers
+"/vm-remote-.*/:/*._database/" means run in all VMs and containers matching the regexes
+```
+
+### Runners
+
+Runners are defined in plugins. They are functions that register with stacker
+to run commands in different contexts.
+
+
+### Config
+
+Stacker can parse json and yml config files with optional stacker templating.
+
+### Tasks
+
+Tasks are defined within plugins or within a specific project. Task files are
+similar in concept to rake or make files. They're scripts that define tasks
+and dependencies.
+
+### Logging
+
 
 
 # TODO
