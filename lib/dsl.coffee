@@ -171,6 +171,7 @@ DSL =
   sudo: sudo
   gulp: gulp
   cli: cli
+  assert: require 'assert'
 
 module.exports =
   yieldfor: YIELDFOR
