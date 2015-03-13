@@ -106,8 +106,7 @@ task = (name, deps, opts, action) ->
       err = prettyPrintStackTrace err,
         filename: sandbox.__filename
         source: sandbox.__source
-        # Do not use sourceMap since stack is already correct if we've made it this far
-        sourceMap: false
+        sourceMap: sandbox.__sourceMap
       log.error err.message or err
       log.error err.stack  if err.stack
 

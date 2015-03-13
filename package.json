@@ -11,7 +11,7 @@
     "stacker": "bin/stacker"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha --opts test/mocha.opts test/*test.*"
   },
   "repository": {
     "type": "git",
@@ -40,5 +40,15 @@
     "lazypipe": "^0.2.2",
     "stacker-args": "^1.0.1",
     "stacker-globals": "^0.3.4"
+    "sandboxed-module": "^2.0.0",
+    "stack-trace": "0.0.9",
+    "stacker-sandboxed": "^0.2.0",
+  },
+  "devDependencies": {
+    "async-profile": "^0.4.0",
+    "chai": "^1.10.0",
+    "sinon": "^1.11.1",
+    "sinon-chai": "^2.6.0",
+    "chai-as-promised": "^4.1.1"
   }
 }

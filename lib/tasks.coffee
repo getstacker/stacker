@@ -2,7 +2,8 @@ path = require 'path'
 CoffeeScript = require 'coffee-script/lib/coffee-script/coffee-script'
 dsl = require './dsl'
 {prettyPrintStackTrace} = require './stacktrace'
-Sandbox = require './sandbox'
+SandboxedModule = require 'stacker-sandboxed'
+stackTrace = require 'stack-trace'
 
 # globals
 _ = require 'stacker/_'
@@ -15,6 +16,18 @@ readFile = Promise.promisify require('fs').readFile
 # Cache of loaded task file contents
 taskFiles = []
 
+# Override coffeescrpt source transformer to include sourceMaps
+SandboxedModule.configure sourceTransformers:
+  coffee: (source) ->
+    if @filename.search('.coffee$') isnt -1
+      compiled = CoffeeScript.compile source,
+        filename: @filename
+        sourceMap: true
+      @sourceMap = compiled.sourceMap
+      @_options.globals.__sourceMap = compiled.sourceMap
+      compiled.js
+    else
+      source
 
 # Load tasks files that match the src glob
 # Returns array of promises
@@ -48,19 +61,27 @@ parse = ->
 
 parseTask = (filename, contents) ->
   source = dsl.inject contents
-  code = CoffeeScript.compile source,
-    filename: filename
-    sourceMap: true
-    # Source maps are wrong unless bare is false for some reason
-    bare: false
+
+  globals = {}
+  locals = {}
+  for k,v of dsl.dsl
+    if _.isFunction(v)
+      globals[k] = v.bind(globals)
+    else
+      locals[k] = v
+  _.extend globals,
+    __filename: filename
+    __dirname: path.dirname filename
+    __source: source
+    __sourceMap: undefined # set by transformer
+
+  sandbox = new SandboxedModule
   try
-    vm = new Sandbox
-      filename: filename
-      code: code.js
-      source: source
-      sourceMap: code.sourceMap
-      dsl: dsl.dsl
-    vm.run()
+    trace = stackTrace.get parseTask
+    sandbox._init filename, trace,
+      globals: globals
+      locals: locals
+    sandbox._compile()
   catch err
     err.code = 'TASKERROR'
     # Errors occur here when task files fail to initialize properly.
@@ -69,8 +90,7 @@ parseTask = (filename, contents) ->
     throw prettyPrintStackTrace err,
       filename: filename
       source: source
-      # Use sourceMap since errors occur before prepareStackTrace is available
-      sourceMap: code.sourceMap
+      sourceMap: sandbox.sourceMap
 
 
 module.exports =
