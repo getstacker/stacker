@@ -74,6 +74,7 @@ parseTask = (filename, contents) ->
     __dirname: path.dirname filename
     __source: source
     __sourceMap: undefined # set by transformer
+    __dsl: dsl.dsl
 
   sandbox = new SandboxedModule
   try
