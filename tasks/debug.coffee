@@ -1,5 +1,3 @@
-util = require 'util'
-
 
 inspect = (key, val, opts = {}) ->
   opts.depth ?= 0

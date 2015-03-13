@@ -164,14 +164,15 @@ YIELDFOR = ['sh', 'sudo']
 
 # Stacker DSL
 DSL =
+  assert: require 'assert'
+  cli: cli
   config: config
+  gulp: gulp
   log: log
   task: task
   sh: sh
   sudo: sudo
-  gulp: gulp
-  cli: cli
-  assert: require 'assert'
+  util: require 'util'
 
 module.exports =
   yieldfor: YIELDFOR
