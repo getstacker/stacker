@@ -43,6 +43,7 @@ prettyPrintStackTrace = (err, opts = {}) ->
 
     if num is errline
       wordlen = line.slice(colpos).search /[\(\)\s\.:]/
+      wordlen = line.length  unless wordlen > 0
       word = line.substr colpos, wordlen
       first = line.slice 0, colpos
       last = line.substr colpos + wordlen
