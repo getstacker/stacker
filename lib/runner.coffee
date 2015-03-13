@@ -36,13 +36,6 @@ run = ->
     # Run task
     gulp.start args.get('task')
 
-  # .then ->
-  #   # Debug SandboxModule require
-  #   # Make sure things have not bled into this global context
-  #   assert = require 'assert'
-  #   assert !global.testtest, 'GLOBAL.TESTTEST SHOULD NOT BE DEFINED HERE'
-  #   assert !String::to, 'STRING PROTOTYPE SHOULD NOT BE SET HERE'
-
   .catch (err) ->
     unless err is 'NOARGS' # TODO: write tests for NOARGS, not sure why this is here
       log.error err.message or err

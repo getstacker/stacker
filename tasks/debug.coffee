@@ -1,16 +1,10 @@
 util = require 'util'
-_ = require 'stacker/_'
 
 
 inspect = (key, val, opts = {}) ->
-  _.defaults opts,
-    depth: 0
-    colors: true
+  opts.depth ?= 0
+  opts.colors ?= true
   console.log "#{key}: #{util.inspect val, opts}\n"
-
-
-# task 'debug', ['debug:config', 'debug:dsl'], help: 'Show config and DSL', ->
-  # DO NOTHING
 
 
 task 'debug:config', help: 'Show looaded stacker config', ->

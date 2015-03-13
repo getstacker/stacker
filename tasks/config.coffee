@@ -1,5 +1,7 @@
-lazypipe = require 'lazypipe'
-debug = require 'gulp-debug'
+# THIS FILE IS JUST A SCRATCH PAD; WIP; FOR MISC TASK STUFF
+
+# lazypipe = require 'lazypipe'
+# debug = require 'gulp-debug'
 
 srcFiles = '**/*.stack'
 
@@ -17,8 +19,7 @@ srcFiles = '**/*.stack'
 #     dest: 'environment'   # name of arg
 
 
-task 'config', help: 'Test config file', ->
-  # TODO: ACCESS CONFIG FROM HERE
+task 'config', xhelp: 'Test config file', ->
   #log.debug 'config: ', config
   log.info 'hi!'
   ret = sh 'echo "hi [2] from sh" && sleep 1'
@@ -28,7 +29,7 @@ task 'config', help: 'Test config file', ->
   return
 
   gulp.src srcFiles
-  .pipe debug verbose: true
+  # .pipe debug verbose: true
 
   # .pipe parseConfigs
   # .pipe (file) ->
@@ -46,12 +47,6 @@ task 'config', help: 'Test config file', ->
   # ret = sudo 'echo hi from sudo'
 
   # log.info '<<< end of config'
-
-
-task 'config:show', desc: 'Output processed config files to stdout', ->
-  # src from pipe
-  # output to stdout
-  console.log 'hello from config:show'
 
 
 
